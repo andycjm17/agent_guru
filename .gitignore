@@ -1,0 +1,20 @@
+# 个人配置 / 运行时产物 —— 一律不入库（SETUP.md「隐私与边界」）
+config.local.json
+
+# 运行时数据：含文档 token、identity.json（本人 open_id）、账本、缓存
+data/
+logs/
+
+# 打包产物
+dist/
+
+# Python 派生
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# 生成的 launchd 实例（由模板填充，勿入库）
+com.workflow-distiller.plist
+
+# macOS
+.DS_Store

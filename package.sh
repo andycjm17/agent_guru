@@ -22,6 +22,7 @@ INCLUDE=(
   config.local.example.json
   README.md
   SETUP.md
+  LICENSE
   .gitignore
 )
 # 注：PLAN.md 是内部设计稿（含 v1 个人化背景），不进分发包

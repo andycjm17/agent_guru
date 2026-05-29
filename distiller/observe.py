@@ -237,7 +237,9 @@ def main(argv=None):
     if "--print" in argv:
         for s in digests["sessions"]:
             tools = ",".join(f"{k}×{v}" for k, v in s["tools"].items()) or "-"
-            print(f"  · 活跃~{s['active_min']}m (跨时{s['duration_min']}m) {s['title']}  | proj={s['project']} | tools={tools}")
+            act = s["active_min"] if s["active_min"] is not None else "?"
+            dur = s["duration_min"] if s["duration_min"] is not None else "?"
+            print(f"  · 活跃~{act}m (跨时{dur}m) {s['title']}  | proj={s['project']} | tools={tools}")
             if s["intent"]:
                 print(f"      intent: {s['intent'][:120]}")
         for m in digests["meetings"]:

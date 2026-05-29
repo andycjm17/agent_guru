@@ -71,11 +71,13 @@ def punchline(net_min: float, window_label: str = "本周") -> str:
         return f"{window_label}净省 ~0（自动化与开销基本抵消）"
     meetings = abs(net_min) / MEETING_MIN
     lunches = abs(net_min) / LUNCH_MIN
+    # 锚点不足 1 个会时四舍五入会塌成「≈ 0 个会 ≈ 0 顿午饭」，反而误导 —— 此时只报时长
+    anchored = meetings >= 1
     if net_min >= 0:
-        return (f"{window_label}净省 ~{_fmt_hours(net_min)} "
-                f"≈ {meetings:.0f} 个 {MEETING_MIN}min 会 ≈ {lunches:.0f} 顿午饭")
-    return (f"{window_label}净亏 ~{_fmt_hours(abs(net_min))}（有返工/坏掉）"
-            f"≈ 倒贴 {meetings:.0f} 个 {MEETING_MIN}min 会")
+        base = f"{window_label}净省 ~{_fmt_hours(net_min)}"
+        return (base + f" ≈ {meetings:.0f} 个 {MEETING_MIN}min 会 ≈ {lunches:.0f} 顿午饭") if anchored else base
+    base = f"{window_label}净亏 ~{_fmt_hours(abs(net_min))}（有返工/坏掉）"
+    return (base + f"≈ 倒贴 {meetings:.0f} 个 {MEETING_MIN}min 会") if anchored else base
 
 
 def summary(days: int = 7) -> dict:

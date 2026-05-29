@@ -99,7 +99,18 @@ CLAUDE = _resolve_cli("claude", "claude_path", str(HOME / ".local" / "bin" / "cl
 
 WEEKLY_DOC_URL = _cfg("weekly_doc_url", "")  # 周报文档 URL；空 = weekly --approve 禁用
 TRACKED_PEOPLE = _cfg("tracked_people", [])  # 单列跟进的人名；空 = 不输出该节
-UI_PORT = int(_cfg("ui_port", 8787))
+
+
+def _int_cfg(key, default):
+    """整数型配置安全解析：脏值（非数字 env / config）降级为 default，
+    绝不让一处错配在 import 期抛 ValueError 拖垮整个包（doctor 都跑不起来）。"""
+    try:
+        return int(_cfg(key, default))
+    except (TypeError, ValueError):
+        return default
+
+
+UI_PORT = _int_cfg("ui_port", 8787)
 
 # 四桶
 BUCKETS = ["eliminate", "automate", "skill", "human"]
