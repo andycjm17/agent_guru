@@ -19,7 +19,8 @@ import sys
 
 from . import config as C
 
-BATCH = 40   # 单批 session 上限（控 claude -p 上下文；紧凑摘要小，单批可容数十条以保聚类完整）
+BATCH = 14   # 单批 session 上限。曾用 40（单批喂全部），但大 prompt 让 LLM 调用易超时、且单批失败=全盘失败；
+             # 降到 14 后单次调用更快更稳，多批互为容错（某批超时只丢该批，其余仍出 map）。跨批同名工作流由 _merge_maps 合并。
 
 SCHEMA_HINT = """{
   "headline": "一句话总览：观察到哪些复发工作流、最该先动手的是什么",
@@ -159,7 +160,8 @@ def distill(digests: dict, dry: bool = False) -> dict | None:
     for i, batch in enumerate(batches, 1):
         prompt = build_prompt(digests, batch)
         C.log(f"distill: 第 {i}/{len(batches)} 批 → LLM[{C.active_provider()}] ({len(prompt)} 字符)")
-        obj = C.llm(prompt, timeout=420, expect_json=True)
+        # 600s：distill 是重推理任务，claude -p 实测常需 7-8min；420s 会在它快完成时误杀触发重试（更慢）。
+        obj = C.llm(prompt, timeout=600, expect_json=True)
         if obj is None:
             C.log(f"distill: 第 {i} 批失败")
             continue
@@ -171,6 +173,7 @@ def distill(digests: dict, dry: bool = False) -> dict | None:
     merged["generated_at"] = C.now_utc().isoformat()
     merged["n_sessions"] = len(sessions)
     merged["n_meetings"] = len(digests.get("meetings", []))
+    merged["by_source"] = digests.get("by_source", {})   # 各观察源贡献（UI/render 展示多源占比）
     return merged
 
 

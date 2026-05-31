@@ -17,7 +17,7 @@ import pathlib
 
 from . import config as C
 
-OK, WARN, BAD = "✓", "⚠", "✗"
+OK, WARN, BAD, NO = "✓", "⚠", "✗", "·"
 
 # bytedcli 安装命令（前置：它是飞书 DM/身份/文档的依赖）
 BYTEDCLI_INSTALL = "npm install -g @bytedance-dev/bytedcli@latest --registry https://bnpm.byted.org"
@@ -63,11 +63,12 @@ def main(argv=None) -> int:
     claude_ok, msg = _check_cli(C.CLAUDE, "claude"); lines.append("  " + msg)
     byted_ok, msg = _check_cli(C.BYTEDCLI, "bytedcli"); lines.append("  " + msg)
     if not byted_ok:
-        hard_fail = True  # bytedcli = 飞书 + Aime 后端的依赖
+        # 解绑后 bytedcli 不再是硬前置：仅飞书 DM/文档 + 字节 AIME 后端需要它。
+        # 真正的硬性要求（LLM 后端 / 至少一个 sink / 至少一个观察源）由下方各节独立判定。
         if npm_ok:
-            lines.append(f"     → 安装: {BYTEDCLI_INSTALL}")
+            lines.append(f"     ⚠ 无 bytedcli → 飞书 + 字节 AIME 不可用（其余后端/渠道仍可跑）；如需: {BYTEDCLI_INSTALL}")
         else:
-            lines.append(f"     → 先装 Node.js/npm，再装 bytedcli: {BYTEDCLI_INSTALL}")
+            lines.append(f"     ⚠ 无 bytedcli（且无 npm）→ 飞书/AIME 不可用；如需先装 Node.js/npm 再 {BYTEDCLI_INSTALL}")
     lark_ok, msg = _check_cli(C.LARK_CLI, "lark-cli"); lines.append("  " + msg)
     if not lark_ok and byted_ok:
         lines.append("     ⚠ 缺 lark-cli：Lark 文档读写不可用（一般随 bytedcli 飞书命令就绪）")
@@ -88,50 +89,66 @@ def main(argv=None) -> int:
         lines.append(f"  {BAD} 无可用 LLM 后端：装 claude 或 bytedcli(含 AIME) 或配 mira_endpoint")
         hard_fail = True
 
-    # 3) 语料目录（Claude Code 会话 或 Cursor 会话，任一即可）
+    # 3) 观察源（Agent 平台，可插拔：Claude Code / Cursor / Codex，任一可观察即可）
+    from . import agents as A
+    from . import sinks as K
     lines.append("")
-    lines.append("观察语料（任一即可）：")
-    proj = pathlib.Path(C.CLAUDE_PROJECTS)
-    claude_sessions = sum(1 for _ in proj.rglob("*.jsonl")) if proj.exists() else 0
-    if proj.exists():
-        lines.append(f"  {OK if claude_sessions else WARN} Claude session 目录: {proj}（{claude_sessions} 个 jsonl）")
-    else:
-        lines.append(f"  {WARN} 无 Claude session 目录: {proj}")
-    # Cursor 源
-    cursor_n = 0
-    try:
-        from . import cursor as _cur
-        if _cur.cursor_available():
-            cursor_n = len(_cur.collect_cursor_sessions())
-            lines.append(f"  {OK if cursor_n else WARN} Cursor 会话: 已检测到 Cursor（{cursor_n} 条会话）")
-        else:
-            lines.append(f"  {WARN} Cursor 会话: 未检测到 Cursor 安装（可选）")
-    except Exception:
-        lines.append(f"  {WARN} Cursor 会话: 读取异常（已忽略）")
-    if claude_sessions == 0 and cursor_n == 0:
-        lines.append(f"  {BAD} 无任何可观察会话（Claude/Cursor 都没有）——先用其中之一干点活")
+    enabled_src = {p.key for p in A.enabled_platforms()}
+    sel = C.live_cfg("sources", None)
+    lines.append(f"观察源（启用 = {'config 指定' if isinstance(sel, list) and sel else '自动探测所有可用'}）：")
+    total_sessions = 0
+    for p in A.all_platforms():
+        try:
+            av = p.available()
+        except Exception:
+            av = False
+        n = -1
+        if av:
+            try:
+                n = len(p.collect_sessions() or [])
+            except Exception:
+                n = -1
+        total_sessions += max(n, 0)
+        mark = OK if (av and p.key in enabled_src) else (WARN if av else NO)
+        state = (f"{n} 条会话" if n >= 0 else "未检测/不可用")
+        en = "启用" if p.key in enabled_src else "未启用"
+        lines.append(f"  {mark} {p.label}: {state}（{en}；skill 落地 {p.skill_kind}）")
+    if total_sessions == 0:
+        lines.append(f"  {BAD} 所有启用观察源都没有可观察会话——先用 Claude/Cursor/Codex 干点活")
         hard_fail = True
-    skills = pathlib.Path(C.CLAUDE_SKILLS)
-    lines.append(f"  {OK if skills.exists() else WARN} Skills 目录: {skills}"
-                 + ("" if skills.exists() else "（无，UI Skills 区将为空）"))
     meet = pathlib.Path(C.MEETING_STATE)
     lines.append(f"  {OK if meet.exists() else WARN} 会议语料(可选): {meet}"
                  + ("" if meet.exists() else "（无，跳过会议旁路）"))
 
-    # 4) 飞书身份 / 功能可用性（零配置：身份自动探测、周报文档自动创建）
+    # 4) 通知 / 输出渠道（可插拔：feishu / local / slack，至少一个可用）
     lines.append("")
-    lines.append("飞书身份与功能（零配置）：")
-    open_id = C.resolve_lark_user_id()   # config → 缓存 → bytedcli auth status 自动探测
+    snk_sel = C.live_cfg("sinks", None)
+    enabled_snk = {s.key for s in K.enabled_sinks()}
+    lines.append(f"通知/输出渠道（启用 = {'config 指定' if isinstance(snk_sel, list) and snk_sel else '自动'}）：")
+    any_sink = False
+    for s in K.all_sinks():
+        try:
+            av = s.available()
+        except Exception:
+            av = False
+        any_sink = any_sink or (av and s.key in enabled_snk)
+        mark = OK if (av and s.key in enabled_snk) else (WARN if av else NO)
+        en = "启用" if s.key in enabled_snk else "未启用"
+        lines.append(f"  {mark} {s.label}: {'可用' if av else '未配置'}（{en}）")
+    if not any_sink:
+        lines.append(f"  {WARN} 无启用且可用的渠道——已自动兜底 local（写 data/out/）")
+
+    # 5) 飞书身份（可选：仅 feishu 渠道需要；缺失只降级，不再硬阻断）
+    lines.append("")
+    lines.append("飞书身份（仅 feishu 渠道需要，缺失=降级）：")
+    open_id = C.resolve_lark_user_id()
     if open_id:
         src = "config" if C.LARK_USER_ID else "自动探测/缓存"
         cache = C.load_json(C.IDENTITY_CACHE, default={}) or {}
         who = cache.get("user_name") or "本人"
-        lines.append(f"  {OK} 飞书身份: {who}（{open_id[:14]}…，来源 {src}）")
-        lines.append(f"  {OK} 飞书 DM（retro/weekly 通知）: 可用")
+        lines.append(f"  {OK} 飞书身份: {who}（{open_id[:14]}…，来源 {src}）· 飞书 DM/文档可用")
     else:
-        lines.append(f"  {BAD} 飞书身份: 无法探测 open_id —— 请先完成 `bytedcli lark auth login`")
-        lines.append(f"  {WARN} 飞书 DM: 不可用（身份未就绪）")
-        hard_fail = True   # 这正是用户约定的前置：飞书 + bytedcli 授权
+        lines.append(f"  {WARN} 飞书身份: 未探测到 open_id —— feishu 渠道降级；如需飞书请 `bytedcli lark auth login`")
     lines.append(f"  {OK} 周报推送（weekly --approve）: "
                  + (f"已配文档 {C.WEEKLY_DOC_URL[:40]}…" if C.WEEKLY_DOC_URL
                     else "首次自动创建周报文档（无需预先配置）"))

@@ -14,11 +14,15 @@
    ```
    这是核心硬前置——工具据此自动拿到你的飞书 `open_id`（DM 收件人）和文档读写权限。
    （`install.sh` 在检测到缺 bytedcli 时会用上面的命令帮你装。）
-3. **一个 AI 编码环境（任一即可）**：Claude Code（`~/.claude/projects`）**或** Cursor。
-   工具观察的就是你在其中的会话；两者都没有则没有可观察语料。
+3. **一个 AI 编码环境（任一即可）**：Claude Code（`~/.claude/projects`）**或** Cursor **或** Codex CLI（`~/.codex/sessions`）。
+   工具观察的就是你在其中的会话；都没有则没有可观察语料。
 
-> **不强绑定 Claude Code**：蒸馏/周报的 LLM 后端自动择优——有 `claude` 用 claude，没有就用
-> **字节 AIME**（`bytedcli aime`，随 bytedcli 即得）；也可在 config 配 `mira_endpoint` 走 Mira/ModelHub 网关。
+> **解绑 Claude Code + 飞书**：
+> - **观察源可插拔**：Claude Code / Cursor / Codex 三选 N，自动探测。观察源同时也是 **Skill 落地目标**。
+> - **通知渠道可插拔（sink）**：飞书 / 本地文件（`data/out/`，零依赖人人可用）/ Slack（填 webhook 即用）。
+> - **LLM 后端自动择优**：有 `claude` 用 claude，没有就用 **字节 AIME**（随 bytedcli），或配 `mira_endpoint` 走 Mira/ModelHub 网关。
+>
+> 选哪些平台用 `python3 -m distiller.setup` 向导，或 UI 里的「⚙ 设置」面板（两条路改同一份 config）。
 > 工具本身纯 Python stdlib（Python ≥ 3.9），不装任何 pip 包。`lark-cli` 随 bytedcli 就绪。
 > `install.sh` 会**自动安装/升级 bytedcli** 到最新；装好后 `python3 -m distiller.doctor` 逐项核验。
 
@@ -30,16 +34,28 @@ cd workflow-distiller-v1
 ./install.sh            # 探测 CLI + 校验飞书授权 + 建目录 + 自检（可选装每周 launchd）
 ```
 
-装完直接用，**无需编辑任何配置**：
+装完直接用，**无需编辑任何配置**（缺省自动探测平台）：
 
 ```bash
-python3 -m distiller.pipeline        # 观察→蒸馏→出 Workflow Map（首次自动创建 Lark 文档）
-python3 -m distiller.server          # 本地 UI：省时 banner + Map + Skills 自主度配置
-python3 -m distiller.weekly_update --approve   # 周报：首次自动创建周报文档，之后每周置顶追加
-python3 -m distiller.retro --dry-run # 预览每周复盘 DM；去掉 --dry-run 真发到你的飞书
+python3 -m distiller.setup           # （可选）平台选择向导：勾观察源 / 通知渠道 / Skill 落地目标
+python3 -m distiller.pipeline        # 观察→蒸馏→出 Workflow Map（交付到启用渠道）
+python3 -m distiller.server          # 本地 UI：省时 banner + Map + Skills 编辑器 + ⚙ 设置
+python3 -m distiller.weekly_update --approve   # 周报：飞书则置顶追加，非飞书则写本地/Slack
+python3 -m distiller.retro --dry-run # 预览每周复盘；去掉 --dry-run 真发到你启用的渠道
 ```
 
-自检随时可跑：`python3 -m distiller.doctor`（逐项告知依赖/授权/功能是否就绪）。
+自检随时可跑：`python3 -m distiller.doctor`（逐项告知依赖/平台/渠道是否就绪）。
+
+## UI：点开任意工作流 / Skill 即可编辑并落地到生产
+
+`python3 -m distiller.server` 打开 `localhost:8787`：
+
+- **Workflow Map**：每行可点 → 抽屉展开步骤分桶 + 下一步；点「蒸馏成 Skill」让 LLM 把这条工作流
+  草拟成一份 SKILL.md，进编辑器改完即可落地。
+- **Skills**：每行可点 → SKILL.md 编辑器 + 自主度下拉。点「应用到生产」会**先把旧版备份到
+  `data/backups/`，再原子写回该 Agent 平台的生效位置**（Claude=`~/.claude/skills/<n>/SKILL.md`、
+  Cursor=`.cursor/rules/<n>.mdc`、Codex=`~/.codex/prompts/<n>.md`），下次会话即加载新版。
+- **⚙ 设置**：勾选观察源 / 通知渠道 / Skill 落地目标 / 填 Slack webhook，写回 config 即时生效。
 
 ## 零配置怎么做到的
 
@@ -56,6 +72,11 @@ python3 -m distiller.retro --dry-run # 预览每周复盘 DM；去掉 --dry-run 
 
 | 字段 | 作用 | 不填的默认 |
 |---|---|---|
+| `sources` | 启用的观察源（`claude_code`/`cursor`/`codex`） | 自动探测所有可用 |
+| `sinks` | 启用的通知渠道（`feishu`/`local`/`slack`） | 飞书可用则飞书，否则 local |
+| `skill_target` | 「应用到生产」默认落地平台 | 首个可写的启用平台 |
+| `slack_webhook` | Slack Incoming Webhook URL | slack 渠道降级跳过 |
+| `cursor_rules_dir` | Cursor `.mdc` 落地目录 | `~/.cursor/rules`（best-effort） |
 | `tracked_people` | 周报里单列「XX 开发跟进」的人名 | 不输出该节 |
 | `ui_port` | 本地 UI 端口 | 8787 |
 | `weekly_doc_url` | 钉死到某个已有周报文档 | 首次自动创建 |

@@ -225,11 +225,21 @@ def _create_weekly_doc(week_xml: str) -> dict:
             "raw": ((r.stdout or "") + (r.stderr or ""))[:400]}
 
 
-def approve_and_push(week_xml: str) -> dict:
+def approve_and_push(week_xml: str, preview: str = "") -> dict:
     """把本周块插入周报文档最前（新周置顶）。无现成文档则自动创建（零配置）。
     策略：fetch with-ids 找到第一个『周 H1』(\\d{4}-W\\d) 的前一个 block，
     block_insert_after 到它之后；找不到则 append 兜底。
+
+    解绑飞书：若 feishu 不在启用 sink 里（如本地/Slack 部署），不强推 Lark——
+    把本周周报写到启用的非飞书渠道（local/slack），保证人人可用。
     """
+    from . import sinks
+    if not any(s.key == "feishu" for s in sinks.enabled_sinks()):
+        res = sinks.broadcast_report("每周 1-on-1-on-1 Update", preview or week_xml, doc_key="weekly")
+        chans = "、".join(k for k, v in (res.get("results") or {}).items() if v.get("ok")) or "(无)"
+        res["action"] = f"非飞书渠道（{chans}）"
+        return res
+
     doc = _resolve_weekly_doc()
     if not doc:
         return _create_weekly_doc(week_xml)
@@ -350,7 +360,7 @@ def main(argv=None):
         print(f"\n→ 本周已推送过（{state[wk_key].get('at')}）。如需重推加 --force。")
         return {"skipped": True}
 
-    res = approve_and_push(week_xml)
+    res = approve_and_push(week_xml, preview=preview)
     if res["ok"]:
         doc_ref = res.get("url") or _resolve_weekly_doc() or "(周报文档)"
         C.log(f"weekly: 已推送 [{res['action']}] → {doc_ref}")

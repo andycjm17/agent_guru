@@ -45,18 +45,15 @@ def main(argv=None):
     print(f"      headline: {(m.get('headline') or '')[:90]}…\n")
 
     # 3) 交付（render 隔离：map 结构异常不应让整条流程抛栈，认知成果已在 map.json 落盘）
-    print("[3/3] render — DocxXML → Lark 文档")
+    print("[3/3] render — 交付到启用渠道（飞书文档 / 本地 / Slack）")
     try:
-        xml = R.build_xml(m)
-        (C.PROJECT_ROOT / R.XML_REL).write_text(xml, encoding="utf-8")
+        res = R.deliver(m, no_external=no_lark)
         if no_lark:
-            print(f"      ✓ 生成 {len(xml)} 字符 XML（--no-lark，未推 Lark）\n")
+            print(f"      ✓ 生成 {res.get('xml_len', 0)} 字符 XML（--no-lark，未向外推）\n")
         else:
-            res = R.push_to_lark(xml)
-            if res.get("url"):
-                print(f"      ✓ Lark [{res['action']}] → {res['url']}\n")
-            else:
-                print(f"      ⚠ 未取到 URL：{res.get('raw', '')[:160]}\n")
+            oks = "、".join(k for k, v in (res.get("results") or {}).items() if v.get("ok")) or "(无)"
+            tail = f"；链接/路径 {res['url']}" if res.get("url") else ""
+            print(f"      ✓ 已交付 → {oks}{tail}\n")
     except Exception as e:
         C.log(f"pipeline: render 失败但 map.json 已落盘，可单独重跑 render：{e!r}")
         print(f"      ⚠ render 异常（map.json 已保存，可 python -m distiller.render 重试）：{e!r}\n")

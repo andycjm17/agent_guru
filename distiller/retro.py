@@ -111,16 +111,19 @@ def run_retro(dry_run: bool = False, skip_distill: bool = False, force: bool = F
         print(dm)
         return {"dm": dm, "new_names": sorted(new_names), "savings": sv}
 
-    ok = C.lark_dm(dm, idempotency_key=rk)
+    from . import sinks
+    bres = sinks.broadcast_dm(dm, idempotency_key=rk)
+    ok = bres["ok"]
+    chans = "、".join(k for k, v in bres["results"].items() if v.get("ok")) or "(无)"
     state[rk] = {"at": C.now_utc().isoformat(), "status": "sent" if ok else "failed",
-                 "new_workflows": sorted(new_names), "net_min": sv["net_min"]}
+                 "channels": chans, "new_workflows": sorted(new_names), "net_min": sv["net_min"]}
     C.save_json(C.PROCESSED_FILE, state)
     if ok:
-        C.log(f"retro: {week} DM 已发送")
-        print(f"已发送本周复盘 DM（{week}）")
+        C.log(f"retro: {week} 复盘已发送 → {chans}")
+        print(f"已发送本周复盘（{week}）→ {chans}")
     else:
-        C.log(f"retro: {week} DM 发送失败")
-    return {"ok": ok, "dm": dm, "savings": sv}
+        C.log(f"retro: {week} 复盘发送失败：{bres['results']}")
+    return {"ok": ok, "dm": dm, "savings": sv, "channels": bres["results"]}
 
 
 def main(argv=None):

@@ -66,7 +66,9 @@ def build_xml(m: dict) -> str:
 
     # 结论先行
     out.append(f"<callout>{esc(m.get('headline', ''))}</callout>")
-    cohort = (f"数据口径：观察 {m.get('n_sessions', '?')} 个 Claude Code session + "
+    bysrc = m.get("by_source") or {}
+    src_note = ("（" + "、".join(f"{k} {v}" for k, v in bysrc.items() if v) + "）") if any(bysrc.values()) else ""
+    cohort = (f"数据口径：观察 {m.get('n_sessions', '?')} 个 AI 会话{src_note} + "
               f"{m.get('n_meetings', '?')} 场会议；生成于 {m.get('generated_at', '')[:19]} UTC。"
               f"耗时一律为诚实估算（标 ~），非实测工时。")
     out.append(f"<p>{esc(cohort)}</p>")
@@ -152,6 +154,52 @@ def build_xml(m: dict) -> str:
                "<li>Agent 观察不到的残差 ≈ 不可替代的人类残差（走廊对话、会上拍板不经过 AI），工具只对看得见的下手。</li>"
                "</ul>")
     return "".join(out)
+
+
+# ---------- 通用 markdown 渲染（给 local / slack 等非飞书 sink）----------
+def build_markdown(m: dict) -> str:
+    wfs = m.get("workflows", [])
+    L = [f"> {m.get('headline', '')}", ""]
+    L.append(f"_数据口径：观察 {m.get('n_sessions', '?')} 会话 + {m.get('n_meetings', '?')} 会议；"
+             f"生成于 {(m.get('generated_at') or '')[:19]} UTC；耗时为诚实估算（~）。_")
+    L.append("")
+    L.append("## 一、工作流总览")
+    L.append("| 工作流 | 主桶 | 频率 | 估时/次 | 实例 | 下一步 |")
+    L.append("|---|---|---|---|---|---|")
+    for w in wfs:
+        L.append("| {} | {} | {} | ~{}min | {} | {} |".format(
+            w.get("name", ""), C.BUCKET_ZH.get(w.get("primary_bucket"), w.get("primary_bucket", "")),
+            w.get("frequency", ""), w.get("est_minutes_per_run", "?"),
+            w.get("n_observed", ""), (w.get("recommendation", "") or "").replace("|", "／").replace("\n", " ")))
+    L.append("")
+    L.append("## 二、逐条工作流")
+    for i, w in enumerate(wfs, 1):
+        L.append(f"### {i}. {w.get('name', '')}")
+        L.append(f"主桶 {C.BUCKET_ZH.get(w.get('primary_bucket'), '?')}｜频率 {w.get('frequency', '')}"
+                 f"｜~{w.get('est_minutes_per_run', '?')}min｜观察 {w.get('n_observed', '')} 次")
+        if w.get("summary"):
+            L.append(w["summary"])
+        for j, st in enumerate(w.get("steps", []) or [], 1):
+            b = C.BUCKET_ZH.get(st.get("bucket"), st.get("bucket", ""))
+            L.append(f"  {j}. [{b}] {st.get('desc', '')} → {st.get('next_action', '')}")
+        if w.get("recommendation"):
+            L.append(f"**下一步**：{w['recommendation']}")
+        L.append("")
+    return "\n".join(L)
+
+
+def deliver(m: dict, no_external: bool = False) -> dict:
+    """交付 Map：生成 DocxXML(飞书) + markdown(local/slack)，扇出给所有启用 sink。
+    no_external=True 时只在本地生成 XML，不向外推（pipeline --no-lark）。"""
+    from . import sinks
+    xml = build_xml(m)
+    (C.PROJECT_ROOT / XML_REL).parent.mkdir(parents=True, exist_ok=True)
+    (C.PROJECT_ROOT / XML_REL).write_text(xml, encoding="utf-8")
+    if no_external:
+        return {"ok": True, "no_external": True, "xml_len": len(xml)}
+    md = build_markdown(m)
+    res = sinks.broadcast_report(_doc_title(), md, doc_key="map", docx_xml=xml)
+    return res
 
 
 # ---------- Lark 推送 ----------
@@ -249,15 +297,17 @@ def main(argv=None):
 
     if "--dry" in argv:
         print(xml[:2000])
-        print(f"\n...(共 {len(xml)} 字符，已写 {XML_REL}；--dry 未推 Lark)")
+        print(f"\n...(共 {len(xml)} 字符，已写 {XML_REL}；--dry 未推任何渠道)")
         return {"xml": xml}
 
-    res = push_to_lark(xml)
-    if res["url"]:
-        C.log(f"render: Lark 文档 [{res['action']}] → {res['url']}")
-        print(f"\nLark 文档：{res['url']}")
+    res = deliver(m)
+    oks = "、".join(k for k, v in (res.get("results") or {}).items() if v.get("ok")) or "(无)"
+    if res.get("url"):
+        C.log(f"render: 已交付 → {oks}；URL {res['url']}")
+        print(f"\n已交付到渠道：{oks}\n  链接/路径：{res['url']}")
     else:
-        C.log(f"render: 未取到文档 URL，raw={res['raw']}")
+        C.log(f"render: 已交付 → {oks}（无 URL）")
+        print(f"\n已交付到渠道：{oks}")
     return res
 
 

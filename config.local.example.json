@@ -13,6 +13,24 @@
   "ui_port": 8787,
   "_ui_port": "本地 UI 端口。",
 
+  "sources": [],
+  "_sources": "启用的 Agent 观察源（也是 Skill 落地目标）：claude_code | cursor | codex。空数组 = 自动探测所有可用。可用 `python -m distiller.setup` 向导或 UI『⚙ 设置』面板勾选。",
+
+  "sinks": [],
+  "_sinks": "启用的通知/输出渠道：feishu | local | slack。空数组 = 自动（飞书可用则飞书，否则 local 兜底）。",
+
+  "skill_target": "",
+  "_skill_target": "UI 里『应用到生产』默认把 Skill 写到哪个平台（claude_code/cursor/codex）。空 = 首个可写的启用平台。",
+
+  "slack_webhook": "",
+  "_slack_webhook": "Slack Incoming Webhook URL（https://hooks.slack.com/services/...）。填了 slack sink 才发得出；空 = slack 渠道降级跳过。",
+
+  "cursor_rules_dir": "",
+  "_cursor_rules_dir": "Cursor 的 Skill(.mdc) 落地目录。Cursor 无全局 rules 目录，建议指向某项目的 .cursor/rules；空 = ~/.cursor/rules（best-effort）。",
+
+  "codex_home": "",
+  "_codex_home": "Codex CLI 根目录，默认 ~/.codex（会话在 sessions/，Skill 落地到 prompts/）。一般无需改。",
+
   "llm_provider": "auto",
   "_llm_provider": "蒸馏/周报的 LLM 后端：auto(默认,自动择优) | claude(Claude Code) | aime(字节AIME,随bytedcli) | mira(下方HTTP网关)。无 claude 时自动用 aime。",
 

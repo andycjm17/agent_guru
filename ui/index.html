@@ -15,6 +15,7 @@
   body{margin:0;background:var(--bg);color:var(--txt);
        font:14px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",sans-serif}
   .wrap{max-width:1080px;margin:0 auto;padding:28px 22px 80px}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
   h1{font-size:20px;margin:0 0 4px;font-weight:650}
   .sub{color:var(--muted);font-size:12.5px;margin-bottom:22px}
   .banner{border-radius:14px;padding:20px 22px;margin-bottom:26px;
@@ -34,19 +35,21 @@
   th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
   th{background:var(--panel2);color:var(--muted);font-weight:600;font-size:12px}
   tr:last-child td{border-bottom:none}
-  td .wf{font-weight:600}
-  td .sm{color:var(--muted);font-size:12px;margin-top:3px}
+  tr.click{cursor:pointer} tr.click:hover td{background:#20242e}
+  td .wf{font-weight:600} td .sm{color:var(--muted);font-size:12px;margin-top:3px}
   .badge{display:inline-block;padding:2px 9px;border-radius:6px;font-size:12px;font-weight:600;color:#0f1115}
   .b-eliminate{background:var(--eliminate)} .b-automate{background:var(--automate)}
   .b-skill{background:var(--skill)} .b-human{background:var(--human)}
   .bar{display:flex;height:8px;border-radius:5px;overflow:hidden;background:#0f1115;margin-top:6px;width:120px}
   .bar i{display:block;height:100%}
   .barlabel{font-size:11px;color:var(--muted);margin-top:4px}
-  select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);
+  select,input[type=text]{background:var(--panel2);color:var(--txt);border:1px solid var(--line);
          border-radius:8px;padding:6px 9px;font-size:13px}
-  .skill{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;
+  input[type=text]{width:100%}
+  .skill{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;cursor:pointer;
          padding:13px 15px;background:var(--panel);border:1px solid var(--line);
          border-radius:11px;margin-bottom:9px}
+  .skill:hover{border-color:#3a4150}
   .skill .nm{font-weight:600} .skill .ds{color:var(--muted);font-size:12px;margin-top:3px;max-width:680px}
   .flow{color:var(--muted);font-size:11.5px;margin-top:6px}
   .err{color:var(--bad);font-size:13px}
@@ -54,14 +57,87 @@
   .legend span{display:inline-flex;align-items:center;gap:5px}
   .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
   a{color:var(--accent)}
+  button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);
+         background:var(--panel2);color:var(--txt);padding:7px 13px}
+  button.primary{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+  button.ghost{background:transparent}
+  button:hover{filter:brightness(1.12)}
+  .gear{background:transparent;border:1px solid var(--line);border-radius:9px;padding:7px 12px;font-size:13px}
+  /* drawer */
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;z-index:40}
+  .scrim.open{display:block}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:min(680px,94vw);background:var(--panel);
+          border-left:1px solid var(--line);box-shadow:-12px 0 40px rgba(0,0,0,.5);
+          transform:translateX(100%);transition:transform .18s ease;z-index:50;
+          display:flex;flex-direction:column}
+  .drawer.open{transform:translateX(0)}
+  .drawer .hd{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;
+              justify-content:space-between;align-items:flex-start;gap:12px}
+  .drawer .hd .ttl{font-size:16px;font-weight:650}
+  .drawer .hd .x{cursor:pointer;color:var(--muted);font-size:20px;line-height:1;background:none;border:none}
+  .drawer .bd{padding:16px 20px;overflow:auto;flex:1}
+  .drawer .ft{padding:13px 20px;border-top:1px solid var(--line);display:flex;
+              gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+  .drawer textarea{width:100%;min-height:340px;background:#0c0e12;color:#e8eaed;border:1px solid var(--line);
+       border-radius:10px;padding:12px;font:12.5px/1.5 "SF Mono",ui-monospace,Menlo,monospace;resize:vertical}
+  .fld{margin-bottom:14px}
+  .fld label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .note{color:var(--muted);font-size:12px;margin-top:6px}
+  .status{font-size:12.5px;margin-right:auto}
+  .status.ok{color:var(--good)} .status.bad{color:var(--bad)}
+  .stepline{padding:8px 0;border-bottom:1px solid var(--line)}
+  .stepline:last-child{border-bottom:none}
+  .panelbox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .chk{display:flex;gap:9px;align-items:flex-start;padding:7px 0}
+  .chk input{margin-top:3px}
+  .chk .l{font-weight:600} .chk .d{color:var(--muted);font-size:12px}
+  .pill{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .pill.on{color:var(--good);border-color:#1c5236} .pill.off{color:var(--muted)}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>workflow-distiller</h1>
-  <div class="sub">静默旁观你用 AI 干活，把复发工作流蒸馏进四个桶 —— 消除 / 自动化 / Skill / 人，让时间向不可替代的人类部分迁移。</div>
+  <div class="top">
+    <div>
+      <h1>workflow-distiller</h1>
+      <div class="sub">静默旁观你用 AI 干活，把复发工作流蒸馏进四个桶 —— 消除 / 自动化 / Skill / 人。点任意一行可展开、编辑、落地到生产。</div>
+    </div>
+    <button class="gear" onclick="toggleSettings()">⚙ 设置</button>
+  </div>
 
   <div id="banner" class="banner"><div class="big">载入中…</div></div>
+
+  <section id="settings" style="display:none">
+    <div class="panelbox">
+      <h2 style="margin-bottom:14px">⚙ 平台设置 <span class="n">解绑 Claude Code + 飞书：选你常用的观察源与通知渠道</span></h2>
+      <div class="grid2">
+        <div>
+          <div class="sub" style="margin-bottom:6px">观察源（Agent 平台 · 也是 Skill 落地目标）</div>
+          <div id="set-sources"></div>
+        </div>
+        <div>
+          <div class="sub" style="margin-bottom:6px">通知 / 输出渠道（sink）</div>
+          <div id="set-sinks"></div>
+          <div class="fld" style="margin-top:10px">
+            <label>Slack Incoming Webhook（填了 slack 才生效）</label>
+            <input id="set-slack" type="text" placeholder="https://hooks.slack.com/services/..."/>
+          </div>
+        </div>
+      </div>
+      <div class="fld" style="margin-top:10px">
+        <label>「应用到生产」默认落地到哪个平台</label>
+        <select id="set-target"></select>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <button class="primary" onclick="savePlatforms()">保存设置</button>
+        <span id="set-status" class="status"></span>
+      </div>
+      <div class="note">留空 = 自动探测所有可用平台；改完即时生效（无需重启 server）。写回 config.local.json。</div>
+    </div>
+  </section>
 
   <section>
     <h2>Workflow Map <span class="n" id="mapcount"></span></h2>
@@ -70,6 +146,7 @@
       <span><i class="dot b-automate"></i>自动化</span>
       <span><i class="dot b-skill"></i>Skill</span>
       <span><i class="dot b-human"></i>人</span>
+      <span style="margin-left:auto">点行展开 →</span>
     </div>
     <div id="maphead" class="sub"></div>
     <table id="maptable"><thead><tr>
@@ -78,22 +155,41 @@
   </section>
 
   <section>
-    <h2>Skills · 自主度配置 <span class="n">桶向下流动：建议 → 待批草稿 → 自动+通知 → 全自动</span></h2>
+    <h2>Skills · 点开可编辑并应用到生产
+      <span class="n" id="skhint"></span>
+      <select id="skplatform" style="margin-left:auto" onchange="loadSkills()"></select>
+    </h2>
     <div id="skills"><div class="sub">载入中…</div></div>
   </section>
 </div>
 
-<script>
-const BUCKETS = ["eliminate","automate","skill","human"];
-const BCOLOR = {eliminate:"var(--eliminate)",automate:"var(--automate)",skill:"var(--skill)",human:"var(--human)"};
-const BZH = {eliminate:"消除",automate:"自动化",skill:"Skill",human:"人"};
-const esc = s => (s==null?"":String(s)).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+<!-- drawer -->
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true">
+  <div class="hd">
+    <div class="ttl" id="dwttl">—</div>
+    <button class="x" onclick="closeDrawer()" aria-label="关闭">×</button>
+  </div>
+  <div class="bd" id="dwbd"></div>
+  <div class="ft" id="dwft"></div>
+</aside>
 
+<script>
+const BUCKETS=["eliminate","automate","skill","human"];
+const BCOLOR={eliminate:"var(--eliminate)",automate:"var(--automate)",skill:"var(--skill)",human:"var(--human)"};
+const BZH={eliminate:"消除",automate:"自动化",skill:"Skill",human:"人"};
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let MAP={workflows:[]}, PLAT=null, SKILLPLATS=[];
+
+async function jget(u){const r=await fetch(u);if(!r.ok)throw new Error((await r.json().catch(()=>({}))).error||r.status);return r.json();}
+async function jpost(u,b){const r=await fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});return r.json();}
+
+/* ---------- banner ---------- */
 async function loadBanner(){
-  const s = await (await fetch("/api/savings?days=7")).json();
-  const el = document.getElementById("banner");
-  el.className = "banner" + (s.net_min < 0 ? " bad" : "");
-  el.innerHTML = `<div class="big">${esc(s.punchline)}</div>
+  const s=await jget("/api/savings?days=7");
+  const el=document.getElementById("banner");
+  el.className="banner"+(s.net_min<0?" bad":"");
+  el.innerHTML=`<div class="big">${esc(s.punchline)}</div>
     <div class="meta">${s.n_runs} 次自动化/Skill 运行（近 ${s.window_days} 天）· 估算口径，含负值</div>
     <div class="chips">
       <span class="chip">省 <b>~${s.saved_min}min</b></span>
@@ -102,25 +198,25 @@ async function loadBanner(){
     </div>`;
 }
 
+/* ---------- map ---------- */
 function bucketBar(steps){
-  const c = {eliminate:0,automate:0,skill:0,human:0};
-  (steps||[]).forEach(st=>{ if(c[st.bucket]!=null) c[st.bucket]++; });
-  const total = Object.values(c).reduce((a,b)=>a+b,0)||1;
-  const segs = BUCKETS.filter(b=>c[b]>0)
-    .map(b=>`<i style="width:${c[b]/total*100}%;background:${BCOLOR[b]}"></i>`).join("");
-  const lbl = BUCKETS.filter(b=>c[b]>0).map(b=>`${BZH[b]}×${c[b]}`).join(" / ");
+  const c={eliminate:0,automate:0,skill:0,human:0};
+  (steps||[]).forEach(st=>{if(c[st.bucket]!=null)c[st.bucket]++;});
+  const total=Object.values(c).reduce((a,b)=>a+b,0)||1;
+  const segs=BUCKETS.filter(b=>c[b]>0).map(b=>`<i style="width:${c[b]/total*100}%;background:${BCOLOR[b]}"></i>`).join("");
+  const lbl=BUCKETS.filter(b=>c[b]>0).map(b=>`${BZH[b]}×${c[b]}`).join(" / ");
   return `<div class="bar">${segs}</div><div class="barlabel">${lbl||"-"}</div>`;
 }
-
 async function loadMap(){
-  const m = await (await fetch("/api/map")).json();
-  document.getElementById("maphead").textContent = m.headline || "";
-  document.getElementById("mapcount").textContent =
-    `${(m.workflows||[]).length} 条 · 观察 ${m.n_sessions||"?"} session + ${m.n_meetings||"?"} 会议`;
-  const body = document.getElementById("mapbody");
-  if(!(m.workflows||[]).length){ body.innerHTML='<tr><td colspan="6">还没跑 distill</td></tr>'; return; }
-  body.innerHTML = m.workflows.map(w=>`
-    <tr>
+  MAP=await jget("/api/map");
+  document.getElementById("maphead").textContent=MAP.headline||"";
+  const bs=MAP.by_source?Object.entries(MAP.by_source).map(([k,v])=>`${k}:${v}`).join(" "):"";
+  document.getElementById("mapcount").textContent=
+    `${(MAP.workflows||[]).length} 条 · 观察 ${MAP.n_sessions||"?"} session${bs?(" ("+bs+")"):""} + ${MAP.n_meetings||"?"} 会议`;
+  const body=document.getElementById("mapbody");
+  if(!(MAP.workflows||[]).length){body.innerHTML='<tr><td colspan="6">还没跑 distill</td></tr>';return;}
+  body.innerHTML=MAP.workflows.map((w,i)=>`
+    <tr class="click" onclick="openWorkflow(${i})">
       <td><div class="wf">${esc(w.name)}</div><div class="sm">${esc(w.summary||"")}</div></td>
       <td><span class="badge b-${w.primary_bucket}">${BZH[w.primary_bucket]||esc(w.primary_bucket)}</span></td>
       <td>${esc(w.frequency)}</td>
@@ -130,36 +226,172 @@ async function loadMap(){
     </tr>`).join("");
 }
 
+/* ---------- skills ---------- */
 async function loadSkills(){
-  const data = await (await fetch("/api/skills")).json();
-  const box = document.getElementById("skills");
-  if(!(data.skills||[]).length){ box.innerHTML='<div class="sub">~/.claude/skills 下没有 skill</div>'; return; }
-  box.innerHTML = data.skills.map(s=>`
-    <div class="skill">
+  const sel=document.getElementById("skplatform");
+  const pk=sel.value||"";
+  const data=await jget("/api/skills"+(pk?`?platform=${encodeURIComponent(pk)}`:""));
+  SKILLPLATS=data.platforms||[];
+  window.SKLEVELS=data.levels||[];
+  if(!sel.dataset.init){
+    sel.innerHTML=(data.platforms||[]).map(p=>`<option value="${p.key}" ${p.key===data.platform?"selected":""}>${esc(p.label)}${p.writable?"":"（不可落地）"}</option>`).join("");
+    sel.dataset.init="1";
+  }
+  document.getElementById("skhint").textContent=`平台 ${data.platform} · 自主度：建议 → 待批草稿 → 自动+通知 → 全自动`;
+  const box=document.getElementById("skills");
+  const items=data.skills||[];
+  if(!items.length){box.innerHTML=`<div class="sub">该平台下还没有 skill。可在上方 Workflow Map 点一行 →「蒸馏成 Skill」生成。</div>`;return;}
+  box.innerHTML=items.map((s,i)=>`
+    <div class="skill" onclick="openSkill('${esc(s.platform)}','${esc(s.name)}')">
       <div>
-        <div class="nm">${esc(s.name)}</div>
+        <div class="nm">${esc(s.display||s.name)}</div>
         <div class="ds">${esc(s.description)}</div>
-        <div class="flow">自主度 = 桶向下流动的档位</div>
+        <div class="flow">点开编辑 SKILL 内容 + 自主度，「应用到生产」备份后写回</div>
       </div>
-      <select data-name="${esc(s.name)}">
-        ${data.levels.map(l=>`<option value="${l.value}" ${l.value===s.autonomy?"selected":""}>${l.label}</option>`).join("")}
+      <select onclick="event.stopPropagation()" onchange="quickAutonomy(event,'${esc(s.platform)}','${esc(s.name)}',this)">
+        ${(data.levels||[]).map(l=>`<option value="${l.value}" ${l.value===s.autonomy?"selected":""}>${l.label}</option>`).join("")}
       </select>
     </div>`).join("");
-  box.querySelectorAll("select").forEach(sel=>{
-    sel.addEventListener("change", async e=>{
-      const r = await fetch("/api/skills",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({name:sel.dataset.name, autonomy:sel.value})});
-      const j = await r.json();
-      sel.style.borderColor = j.ok ? "var(--good)" : "var(--bad)";
-      setTimeout(()=>sel.style.borderColor="var(--line)", 900);
-    });
-  });
+}
+async function quickAutonomy(ev,platform,name,selEl){
+  ev.stopPropagation();
+  const j=await jpost("/api/skills",{platform,name,autonomy:selEl.value});
+  selEl.style.borderColor=j.ok?"var(--good)":"var(--bad)";
+  setTimeout(()=>selEl.style.borderColor="var(--line)",900);
 }
 
-// 三块各自独立加载：任一失败只在本块显示错误，不连累其它块
-loadBanner().catch(e=>{ document.getElementById("banner").innerHTML=`<div class="err">省时数据载入失败：${esc(e.message)}</div>`; });
-loadMap().catch(e=>{ document.getElementById("mapbody").innerHTML=`<tr><td colspan="6" class="err">Map 载入失败：${esc(e.message)}</td></tr>`; });
-loadSkills().catch(e=>{ document.getElementById("skills").innerHTML=`<div class="err">Skills 载入失败：${esc(e.message)}</div>`; });
+/* ---------- drawer ---------- */
+function openDrawerShell(title,bodyHtml,footHtml){
+  document.getElementById("dwttl").innerHTML=title;
+  document.getElementById("dwbd").innerHTML=bodyHtml;
+  document.getElementById("dwft").innerHTML=footHtml;
+  document.getElementById("scrim").classList.add("open");
+  document.getElementById("drawer").classList.add("open");
+}
+function closeDrawer(){
+  document.getElementById("scrim").classList.remove("open");
+  document.getElementById("drawer").classList.remove("open");
+}
+function setStatus(msg,ok){const e=document.getElementById("dwstatus");if(e){e.textContent=msg;e.className="status "+(ok?"ok":"bad");}}
+
+let CURWF=null;
+function openWorkflow(i){
+  const w=MAP.workflows[i];if(!w)return;
+  CURWF=w.name;
+  const steps=(w.steps||[]).map((s,j)=>`<div class="stepline">
+      <span class="badge b-${s.bucket}">${BZH[s.bucket]||esc(s.bucket)}</span>
+      <b style="margin-left:6px">${j+1}.</b> ${esc(s.desc)}
+      <div class="note">→ ${esc(s.next_action||"")}</div></div>`).join("")||"<div class='note'>（无步骤拆解）</div>";
+  const inst=(w.instances||[]).length?`<div class="fld"><label>观察到的实例</label><div class="note">${(w.instances||[]).map(esc).join("、")}</div></div>`:"";
+  const body=`
+    <div class="fld"><span class="badge b-${w.primary_bucket}">${BZH[w.primary_bucket]||esc(w.primary_bucket)}</span>
+      <span class="note"> 频率 ${esc(w.frequency)} · ~${esc(w.est_minutes_per_run)}min/次 · 观察 ${esc(w.n_observed)} 次</span></div>
+    <div class="fld"><label>摘要</label>${esc(w.summary||"")}</div>
+    <div class="fld"><label>下一步建议</label>${esc(w.recommendation||"")}</div>
+    <div class="fld"><label>步骤 × 分桶</label>${steps}</div>${inst}`;
+  const foot=`<span id="dwstatus" class="status"></span>
+    <button onclick="closeDrawer()">关闭</button>
+    <button class="primary" onclick="promote()">蒸馏成 Skill →</button>`;
+  openDrawerShell(`工作流 · ${esc(w.name)}`,body,foot);
+}
+
+async function promote(){
+  const name=CURWF;if(!name)return;
+  setStatus("LLM 起草 SKILL 中…（约 10-60s）",true);
+  document.querySelector("#dwft .primary").disabled=true;
+  const j=await jpost("/api/skill/promote",{workflow:name});
+  if(!j.ok){setStatus("起草失败："+(j.error||"?"),false);document.querySelector("#dwft .primary").disabled=false;return;}
+  openSkillEditor(j.platform,j.name,j.content,{isNew:true,fromWorkflow:name});
+}
+
+async function openSkill(platform,name){
+  const j=await jget(`/api/skill?platform=${encodeURIComponent(platform)}&name=${encodeURIComponent(name)}`);
+  if(!j.ok){alert("读取失败");return;}
+  openSkillEditor(platform,name,j.content,{isNew:false,path:j.path});
+}
+
+function openSkillEditor(platform,name,content,opt){
+  opt=opt||{};
+  const plat=SKILLPLATS.find(p=>p.key===platform)||{label:platform};
+  const levels=window.SKLEVELS||[];
+  const tgtSel=`<select id="ed-platform">${SKILLPLATS.filter(p=>p.writable).map(p=>`<option value="${p.key}" ${p.key===platform?"selected":""}>${esc(p.label)}</option>`).join("")}</select>`;
+  const autoSel=`<select id="ed-autonomy">${levels.map(l=>`<option value="${l.value}" ${l.value==="suggest"?"selected":""}>${l.label}</option>`).join("")}</select>`;
+  const fromTag=opt.fromWorkflow?`<div class="note">由工作流「${esc(opt.fromWorkflow)}」蒸馏的草稿——可编辑后再落地。</div>`:"";
+  const pathTag=opt.path?`<div class="note">当前生效文件：${esc(opt.path)}</div>`:"";
+  const body=`
+    ${fromTag}
+    <div class="fld"><label>Skill 名（文件标识）</label><input id="ed-name" type="text" value="${esc(name)}"/></div>
+    <div class="row" style="margin-bottom:12px">
+      <div class="fld" style="flex:1;margin:0"><label>落地平台</label>${tgtSel}</div>
+      <div class="fld" style="flex:1;margin:0"><label>自主度</label>${autoSel}</div>
+    </div>
+    <div class="fld"><label>内容（frontmatter + 正文）</label>
+      <textarea id="ed-content">${esc(content)}</textarea>${pathTag}</div>
+    <div class="note">「应用到生产」会先把旧版备份到 data/backups/，再原子写回该平台的生效位置。${esc(plat.skill_note||"")}</div>`;
+  const foot=`<span id="dwstatus" class="status"></span>
+    <button onclick="closeDrawer()">取消</button>
+    <button class="primary" id="ed-apply" onclick="applySkill()">应用到生产</button>`;
+  openDrawerShell(`${opt.isNew?"新建":"编辑"} Skill · ${esc(name)}`,body,foot);
+}
+
+async function applySkill(){
+  const platform=document.getElementById("ed-platform").value;
+  const name=document.getElementById("ed-name").value.trim();
+  const content=document.getElementById("ed-content").value;
+  const autonomy=document.getElementById("ed-autonomy").value;
+  if(!name||!content.trim()){setStatus("name / 内容不能为空",false);return;}
+  document.getElementById("ed-apply").disabled=true;
+  setStatus("写入中…",true);
+  const j=await jpost("/api/skill",{platform,name,content,autonomy});
+  if(j.ok){
+    setStatus("已落地 → "+j.path+(j.backup?("（旧版备份 "+j.backup.split("/").pop()+"）"):""),true);
+    await loadSkills();
+    setTimeout(closeDrawer,1100);
+  }else{
+    setStatus("失败："+(j.error||"?"),false);
+    document.getElementById("ed-apply").disabled=false;
+  }
+}
+
+/* ---------- settings ---------- */
+function toggleSettings(){
+  const s=document.getElementById("settings");
+  const show=s.style.display==="none";
+  s.style.display=show?"block":"none";
+  if(show)loadPlatforms();
+}
+async function loadPlatforms(){
+  PLAT=await jget("/api/platforms");
+  document.getElementById("set-sources").innerHTML=PLAT.sources.map(p=>`
+    <label class="chk"><input type="checkbox" class="src" value="${p.key}" ${p.enabled?"checked":""} ${p.available?"":"disabled"}/>
+      <div><div class="l">${esc(p.label)} <span class="pill ${p.available?"on":"off"}">${p.available?"已检测":"未检测"}</span></div>
+      <div class="d">skill 落地：${esc(p.skill_kind)}${p.skill_note?("　"+esc(p.skill_note)):""}</div></div></label>`).join("");
+  document.getElementById("set-sinks").innerHTML=PLAT.sinks.map(s=>`
+    <label class="chk"><input type="checkbox" class="snk" value="${s.key}" ${s.enabled?"checked":""}/>
+      <div><div class="l">${esc(s.label)} <span class="pill ${s.available?"on":"off"}">${s.available?"可用":"未配置"}</span></div></div></label>`).join("");
+  document.getElementById("set-target").innerHTML=PLAT.sources.map(p=>`<option value="${p.key}" ${p.key===PLAT.skill_target?"selected":""}>${esc(p.label)}</option>`).join("");
+  document.getElementById("set-slack").value=PLAT.slack_webhook_set?"********（已配置，留空不改）":"";
+}
+async function savePlatforms(){
+  const sources=[...document.querySelectorAll(".src:checked")].map(e=>e.value);
+  const sinks=[...document.querySelectorAll(".snk:checked")].map(e=>e.value);
+  const skill_target=document.getElementById("set-target").value;
+  const body={sources,sinks,skill_target};
+  const slack=document.getElementById("set-slack").value;
+  if(slack && !slack.startsWith("*"))body.slack_webhook=slack;
+  const st=document.getElementById("set-status");
+  st.textContent="保存中…";st.className="status";
+  const j=await jpost("/api/platforms",body);
+  if(j.ok){st.textContent="已保存 "+(j.saved||[]).join("、")+"（即时生效）";st.className="status ok";
+    loadMap();loadSkills();
+  }else{st.textContent="失败："+(j.error||"?");st.className="status bad";}
+}
+
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
+
+loadBanner().catch(e=>{document.getElementById("banner").innerHTML=`<div class="err">省时数据载入失败：${esc(e.message)}</div>`;});
+loadMap().catch(e=>{document.getElementById("mapbody").innerHTML=`<tr><td colspan="6" class="err">Map 载入失败：${esc(e.message)}</td></tr>`;});
+loadSkills().catch(e=>{document.getElementById("skills").innerHTML=`<div class="err">Skills 载入失败：${esc(e.message)}</div>`;});
 </script>
 </body>
 </html>

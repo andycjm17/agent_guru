@@ -212,16 +212,30 @@ def collect_cursor() -> list:
 
 
 def build_digests() -> dict:
-    sessions = collect_sessions()                 # Claude Code ~/.claude/projects
-    cursor_sessions = collect_cursor()            # Cursor（可选并列源）
-    if cursor_sessions:
-        sessions = sorted(sessions + cursor_sessions, key=lambda s: s.get("start") or "")
-        C.log(f"observe: 合并 Cursor 会话 {len(cursor_sessions)} 条")
+    """从所有「启用的 Agent 平台」收集会话摘要（Claude Code / Cursor / Codex …），并入会议旁路语料。
+    平台集合由 config sources 驱动，缺省自动探测——这是「解绑 Claude Code」的入口。"""
+    from .agents import enabled_platforms
+    sessions: list = []
+    by_source: dict = {}
+    for p in enabled_platforms():
+        try:
+            ss = p.collect_sessions() or []
+        except Exception as e:
+            C.log(f"observe: 平台 {p.key} 观察异常（忽略）: {e!r}")
+            ss = []
+        for s in ss:
+            s.setdefault("source", p.key)
+        by_source[p.key] = len(ss)
+        if ss:
+            C.log(f"observe: {p.label} 贡献 {len(ss)} 条会话")
+        sessions += ss
+    sessions.sort(key=lambda s: s.get("start") or "")
     meetings = collect_meetings()
     return {
         "generated_at": C.now_utc().isoformat(),
         "n_sessions": len(sessions),
-        "n_cursor_sessions": len(cursor_sessions),
+        "by_source": by_source,                       # 各平台贡献的会话数（doctor/UI 展示）
+        "n_cursor_sessions": by_source.get("cursor", 0),  # 向后兼容旧字段
         "n_meetings": len(meetings),
         "sessions": sessions,
         "meetings": meetings,

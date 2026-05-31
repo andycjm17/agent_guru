@@ -36,25 +36,36 @@ LARK_DOC_FILE = DATA_DIR / "lark_doc.json"          # 存 Map 文档 token，供
 WEEKLY_DOC_FILE = DATA_DIR / "weekly_doc.json"      # 存周报文档 token（首次自动创建后写入）
 IDENTITY_CACHE = DATA_DIR / "identity.json"         # 缓存自动探测到的本人 open_id
 PROCESSED_FILE = STATE_DIR / "processed.json"       # retro 去重
+BACKUP_DIR = DATA_DIR / "backups"                   # 「应用到生产」前的 skill 旧版备份
+OUT_DIR = DATA_DIR / "out"                          # local sink 落地的 markdown 产物
+LOCAL_CONFIG_PATH = None                            # 实际加载到的 config.local.json 路径（_load_local_config 填）
 
 HOME = pathlib.Path.home()
 
 # ---------- 本地配置层（可移植部署的关键：所有个人/环境相关项都从这里来）----------
 # 查找顺序：环境变量 $WD_CONFIG 指定的文件 → 项目根 config.local.json。该文件每人一份、不入库。
-def _load_local_config() -> dict:
+def _config_candidates() -> list:
     candidates = []
     env_path = os.environ.get("WD_CONFIG")
     if env_path:
         candidates.append(pathlib.Path(env_path))
     candidates.append(PROJECT_ROOT / "config.local.json")
-    for p in candidates:
+    return candidates
+
+
+def _load_local_config() -> dict:
+    global LOCAL_CONFIG_PATH
+    for p in _config_candidates():
         try:
             if p.exists():
                 obj = json.loads(p.read_text(encoding="utf-8"))
                 if isinstance(obj, dict):
+                    LOCAL_CONFIG_PATH = p
                     return obj
         except Exception:
             pass
+    # 没有现成文件：约定写入路径为首选候选（env $WD_CONFIG 或项目根）
+    LOCAL_CONFIG_PATH = _config_candidates()[0]
     return {}
 
 
@@ -84,6 +95,66 @@ def _resolve_cli(name: str, cfg_key: str, fallback: str) -> str:
     return name
 
 
+def live_cfg(key, default=None):
+    """像 _cfg() 一样取值，但每次都**重新读** config.local.json（不吃 import 时的快照）。
+    供 agents/sinks 注册表与 setup/UI 用：在 server 长驻进程里改了平台选择能即时生效。"""
+    try:
+        for p in _config_candidates():
+            if p.exists():
+                obj = json.loads(p.read_text(encoding="utf-8"))
+                if isinstance(obj, dict) and key in obj and obj[key] not in (None, ""):
+                    return obj[key]
+                break   # 只认第一个存在的配置文件，与 _load_local_config 同口径
+    except Exception:
+        pass
+    env = os.environ.get("WD_" + str(key).upper())
+    if env not in (None, ""):
+        return env
+    return default
+
+
+def update_local_config(patch: dict) -> dict:
+    """把 patch 合并进 config.local.json 并原子落盘；同时更新进程内 _CFG。
+    用于 setup 向导与 UI 设置面板写回平台选择。返回新配置全量。"""
+    path = LOCAL_CONFIG_PATH or (PROJECT_ROOT / "config.local.json")
+    cur = {}
+    try:
+        if path.exists():
+            obj = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(obj, dict):
+                cur = obj
+    except Exception:
+        cur = {}
+    for k, v in (patch or {}).items():
+        cur[k] = v
+    save_json(path, cur)            # 原子写（save_json 定义在下方，import 时已就绪）
+    try:
+        _CFG.update(cur)            # 让本进程内后续 _cfg 也看到（CLI 路径等 import 期常量不刷新，需重启）
+    except Exception:
+        pass
+    log(f"config: 已更新 config.local.json（{', '.join(patch.keys())}）")
+    return cur
+
+
+def backup_file(path) -> "pathlib.Path | None":
+    """把一个文件复制到 data/backups/<stem>.<UTC时间戳><suffix>，返回备份路径。
+    用于「应用到生产」覆写 SKILL.md 前留旧版，可回滚。源不存在返回 None。"""
+    src = pathlib.Path(path)
+    if not src.exists():
+        return None
+    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    ts = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    # 名字带上父目录名，避免不同 skill 的同名 SKILL.md 互相覆盖备份
+    tag = src.parent.name if src.name.upper().startswith("SKILL") else src.stem
+    dest = BACKUP_DIR / f"{tag}.{ts}{src.suffix}"
+    try:
+        dest.write_text(src.read_text(encoding="utf-8", errors="replace"), encoding="utf-8")
+        return dest
+    except Exception as e:
+        log(f"backup_file 失败 {src}: {e!r}")
+        return None
+
+
 # ---------- 外部语料（可被 config 覆盖；默认相对 HOME，天然可移植）----------
 CLAUDE_PROJECTS = pathlib.Path(_cfg("claude_projects_dir", HOME / ".claude" / "projects"))
 CLAUDE_SKILLS = pathlib.Path(_cfg("claude_skills_dir", HOME / ".claude" / "skills"))
@@ -111,6 +182,16 @@ def _int_cfg(key, default):
 
 
 UI_PORT = _int_cfg("ui_port", 8787)
+
+# ---------- 可插拔平台（解绑 Claude Code + 飞书）----------
+# 这些是 import 期快照，仅供默认值/doctor 展示；运行时 agents/sinks 注册表一律走 live_cfg，
+# 以便 setup 向导 / UI 设置面板改完即时生效（server 长驻也无需重启即认新选择）。
+SOURCES = _cfg("sources", [])          # 启用的 Agent 观察源 key 列表；空 = 自动探测所有可用
+SINKS = _cfg("sinks", [])              # 启用的通知/输出渠道 key 列表；空 = 自动（飞书可用则飞书，否则 local）
+SKILL_TARGET = _cfg("skill_target", "")  # 「应用到生产」写到哪个 Agent 平台；空 = 首个可写的启用平台
+SLACK_WEBHOOK = _cfg("slack_webhook", "")  # Slack Incoming Webhook URL；空 = slack sink 降级跳过
+CURSOR_RULES_DIR = _cfg("cursor_rules_dir", "")  # Cursor skill(.mdc) 落地目录；空 = ~/.cursor/rules
+CODEX_HOME = pathlib.Path(_cfg("codex_home", HOME / ".codex"))  # Codex CLI 根目录
 
 # 四桶
 BUCKETS = ["eliminate", "automate", "skill", "human"]
@@ -185,7 +266,8 @@ def save_json(path: pathlib.Path, obj) -> None:
     """原子写：先写同目录 .tmp 再 replace，避免写一半被中断留下损坏 JSON。"""
     p = pathlib.Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
-    tmp = p.with_suffix(p.suffix + ".tmp")
+    # tmp 名带 pid，避免两个进程同写一文件时撞同一个 .tmp（os.replace 仍保证目标不会半写损坏）
+    tmp = p.with_suffix(p.suffix + f".{os.getpid()}.tmp")
     tmp.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp.replace(p)   # 同目录、同文件系统 → 原子替换
 
@@ -452,6 +534,17 @@ def lark_dm(markdown: str, idempotency_key: str, user_id: str = "",
         return True
     log(f"lark_dm 失败: {data.get('error') or (r.stderr or '')[:200]}")
     return False
+
+
+def to_slack_mrkdwn(md: str) -> str:
+    """把通用 markdown 粗转 Slack mrkdwn：**粗体**→*粗体*、[t](u)→<u|t>、转义 &<>。
+    （Slack 的 mrkdwn 用单星表粗体、尖括号表链接，与标准 md 不同。）"""
+    s = md or ""
+    s = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    s = re.sub(r"\[([^\]]+)\]\((https?://[^)]+)\)", r"<\2|\1>", s)   # 链接
+    s = re.sub(r"\*\*([^*]+)\*\*", r"*\1*", s)                      # 粗体
+    s = re.sub(r"(?m)^\s*#{1,6}\s*", "", s)                          # 去 markdown 标题井号
+    return s
 
 
 def ensure_dirs():
