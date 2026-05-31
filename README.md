@@ -1,3 +1,5 @@
+<!-- [English](README.en.md) | 中文 -->
+
 # workflow-distiller
 
 workflow-distiller 观察 AI 协作会话，将反复出现的工作流蒸馏为四类——**消除 / 自动化 / Skill / 人**——并直接生成可运行的 Skill 与自动化，让精力向不可替代的人类判断迁移。

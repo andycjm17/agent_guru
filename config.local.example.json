@@ -1,62 +1,62 @@
 {
-  "_说明": "复制本文件为 config.local.json 并填写所需字段（或运行 ./install.sh 自动生成）。所有字段均为可选，留空时相应功能自动降级。",
+  "_about": "Copy this file to config.local.json and fill in what you need (or run ./install.sh to generate it). All fields are optional; unset fields degrade gracefully. | 复制本文件为 config.local.json 并填写所需字段（或运行 ./install.sh 自动生成）。所有字段均为可选，留空时相应功能自动降级。",
 
   "sources": [],
-  "_sources": "启用的观察源（同时作为 Skill 应用目标）：claude_code | cursor | codex。空数组表示自动探测所有可用平台。可通过 `python -m distiller.setup` 或 Dashboard「⚙ 设置」配置。",
+  "_sources": "Enabled observation sources (also Skill targets): claude_code | cursor | codex. Empty = auto-detect all available. Configure via `python -m distiller.setup` or the Dashboard Settings. | 启用的观察源（同时作为 Skill 应用目标）。空数组表示自动探测所有可用平台。",
 
   "sinks": [],
-  "_sinks": "启用的通知渠道：feishu | local | slack。空数组表示自动选择（飞书可用则用飞书，否则回退至本地）。",
+  "_sinks": "Enabled delivery channels: feishu | local | slack. Empty = auto (Feishu if available, otherwise local). | 启用的通知渠道。空数组表示自动选择（飞书可用则用飞书，否则回退至本地）。",
 
   "skill_target": "",
-  "_skill_target": "Dashboard 中 Skill 的应用目标平台（claude_code / cursor / codex）。留空时自动选择首个可写的启用平台。",
+  "_skill_target": "Default target platform for the Dashboard 'Apply to production' (claude_code / cursor / codex). Empty = first writable enabled platform. | Skill 的应用目标平台。留空时自动选择首个可写的启用平台。",
 
   "slack_webhook": "",
-  "_slack_webhook": "Slack Incoming Webhook URL（https://hooks.slack.com/services/...）。启用 slack 渠道时必填；留空则跳过 Slack。",
+  "_slack_webhook": "Slack Incoming Webhook URL (https://hooks.slack.com/services/...). Required to enable the slack channel; empty = Slack skipped. | 启用 slack 渠道时必填；留空则跳过 Slack。",
 
   "cursor_rules_dir": "",
-  "_cursor_rules_dir": "Cursor 的 Skill（.mdc）应用目录。Cursor 无全局 rules 目录，建议指向某个项目的 .cursor/rules。留空时使用 ~/.cursor/rules。",
+  "_cursor_rules_dir": "Cursor Skill (.mdc) target directory. Cursor has no global rules dir; point it at a project's .cursor/rules. Empty = ~/.cursor/rules. | Cursor 的 Skill（.mdc）应用目录。留空时使用 ~/.cursor/rules。",
 
   "codex_home": "",
-  "_codex_home": "Codex CLI 根目录，默认 ~/.codex（会话位于 sessions/，Skill 写入 prompts/）。通常无需修改。",
+  "_codex_home": "Codex CLI home, default ~/.codex (sessions in sessions/, Skills in prompts/). Usually no need to change. | Codex CLI 根目录。通常无需修改。",
 
   "llm_provider": "auto",
-  "_llm_provider": "蒸馏与周报使用的 LLM 后端：auto（默认，自动择优）| claude | aime（字节 AIME，随 bytedcli）| mira（HTTP 网关，见下）。无 claude 时自动切换至 aime。",
+  "_llm_provider": "LLM backend for distill and reports: auto (default) | claude | aime (ByteDance AIME, with bytedcli) | mira (HTTP gateway). Falls back to aime if claude is unavailable. | 蒸馏与周报使用的 LLM 后端。无 claude 时自动切换至 aime。",
 
   "mira_endpoint": "",
   "mira_token": "",
   "mira_model": "",
-  "_mira": "可选：将 Mira / ModelHub 等 OpenAI 兼容网关作为 LLM 后端。填写 mira_endpoint（chat/completions URL）即启用；mira_token 为 Bearer，mira_model 为模型名。",
+  "_mira": "Optional: use a Mira / ModelHub OpenAI-compatible gateway as the LLM backend. Set mira_endpoint (chat/completions URL) to enable; mira_token is the Bearer, mira_model the model name. | 可选：将 Mira / ModelHub 网关作为 LLM 后端。",
 
   "lark_user_id": "",
-  "_lark_user_id": "飞书 open_id（ou_ 开头），用于 retro / weekly 的 DM 收件人。留空时自动探测当前用户；探测失败则禁用 DM。",
+  "_lark_user_id": "Feishu open_id (starts with ou_), the DM recipient for retro / weekly. Empty = auto-detect current user; DM disabled if detection fails. | 飞书 DM 收件人。留空时自动探测当前用户。",
 
   "weekly_doc_url": "",
-  "_weekly_doc_url": "周报 Lark 文档 URL；weekly_update --approve 将新一周追加至此。留空时首次 --approve 自动创建。",
+  "_weekly_doc_url": "Weekly report Lark document URL; weekly_update --approve appends each new week here. Empty = created on first --approve. | 周报 Lark 文档 URL。留空时首次 --approve 自动创建。",
 
   "tracked_people": [],
-  "_tracked_people": "周报中单列开发跟进的人员，如 [\"张三\", \"李四\"]。留空时不输出该节。",
+  "_tracked_people": "People listed separately under dev follow-ups in the report, e.g. [\"Alice\", \"Bob\"]. Empty = section omitted. | 周报中单列开发跟进的人员。留空时不输出该节。",
 
   "meeting_saved_min": 15,
   "meeting_overhead_min": 1,
-  "_meeting_savings": "省时估算口径（分钟）：每场被自动速递 action 的会议，估算节省的手动整理时长（saved）与自动化开销（overhead）。仅用于 Dashboard 的估算项，可按实际校准。",
+  "_meeting_savings": "Time-saved estimate (minutes) per meeting whose action items are auto-delivered: manual effort saved (saved) and automation overhead (overhead). Used only for the Dashboard estimate; calibrate to your own. | 省时估算口径（分钟），仅用于 Dashboard 的估算项，可按实际校准。",
 
   "ui_port": 8787,
-  "_ui_port": "Dashboard 端口。",
+  "_ui_port": "Dashboard port. | Dashboard 端口。",
 
   "cursor_enabled": "auto",
-  "_cursor_enabled": "是否将 Cursor 会话并入观察：auto（默认，检测到即启用）| false（关闭）。",
+  "_cursor_enabled": "Include Cursor sessions in observation: auto (default, enabled if detected) | false (off). | 是否将 Cursor 会话并入观察。",
 
   "cursor_storage_dir": "",
-  "_cursor_storage_dir": "Cursor 的 User 目录（含 globalStorage/state.vscdb）。留空时按平台默认位置查找。",
+  "_cursor_storage_dir": "Cursor User directory (containing globalStorage/state.vscdb). Empty = located by platform default. | Cursor 的 User 目录。留空时按平台默认位置查找。",
 
   "bytedcli_path": "",
   "lark_cli_path": "",
   "claude_path": "",
-  "_cli_paths": "三个 CLI 的绝对路径。留空时通过 PATH 自动探测（which）；仅在非标准安装位置时填写。",
+  "_cli_paths": "Absolute paths to the three CLIs. Empty = auto-detect via PATH (which); set only for non-standard install locations. | 三个 CLI 的绝对路径。留空时通过 PATH 自动探测。",
 
   "claude_projects_dir": "",
-  "_claude_projects_dir": "Claude Code 会话目录，默认 ~/.claude/projects。通常无需修改。",
+  "_claude_projects_dir": "Claude Code sessions directory, default ~/.claude/projects. Usually no need to change. | Claude Code 会话目录。通常无需修改。",
 
   "meeting_state_file": "",
-  "_meeting_state_file": "可选：meeting-actions 的 state/processed.json，用于并入会议数据。留空则忽略。"
+  "_meeting_state_file": "Optional: meeting-actions state/processed.json, to merge in meeting data. Empty = ignored. | 可选：meeting-actions 的会议数据。留空则忽略。"
 }

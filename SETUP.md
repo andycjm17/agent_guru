@@ -1,3 +1,5 @@
+<!-- [English](SETUP.en.md) | 中文 -->
+
 # 部署指南
 
 将 workflow-distiller 部署到本地环境。完成飞书 + bytedcli 授权后即可使用——身份自动探测，周报文档首次自动创建，无需手动填写任何 ID 或 URL。

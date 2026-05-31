@@ -16,6 +16,7 @@
        font:14px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",sans-serif}
   .wrap{max-width:1080px;margin:0 auto;padding:28px 22px 80px}
   .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .topbtns{display:flex;gap:8px;align-items:center}
   h1{font-size:20px;margin:0 0 4px;font-weight:650}
   .sub{color:var(--muted);font-size:12.5px;margin-bottom:22px}
   .banner{border-radius:14px;padding:20px 22px;margin-bottom:26px;
@@ -63,6 +64,7 @@
   button.ghost{background:transparent}
   button:hover{filter:brightness(1.12)}
   .gear{background:transparent;border:1px solid var(--line);border-radius:9px;padding:7px 12px;font-size:13px}
+  .langtog b{color:var(--txt)} .langtog span{color:var(--muted)}
   /* drawer */
   .scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;z-index:40}
   .scrim.open{display:block}
@@ -103,55 +105,59 @@
   <div class="top">
     <div>
       <h1>workflow-distiller</h1>
-      <div class="sub">观察 AI 协作会话，将复发工作流蒸馏为四类——消除 / 自动化 / Skill / 人。点击任意行可展开、编辑并应用到生产。</div>
+      <div class="sub" data-i18n="sub"></div>
     </div>
-    <button class="gear" onclick="toggleSettings()">⚙ 设置</button>
+    <div class="topbtns">
+      <button class="gear langtog" id="langbtn" onclick="toggleLang()"></button>
+      <button class="gear" onclick="toggleSettings()" data-i18n="settings_btn"></button>
+    </div>
   </div>
 
-  <div id="banner" class="banner"><div class="big">载入中…</div></div>
+  <div id="banner" class="banner"><div class="big" data-i18n="loading"></div></div>
 
   <section id="settings" style="display:none">
     <div class="panelbox">
-      <h2 style="margin-bottom:14px">⚙ 平台设置 <span class="n">配置观察源与通知渠道（可插拔）</span></h2>
+      <h2 style="margin-bottom:14px"><span>⚙ </span><span data-i18n="set_title"></span> <span class="n" data-i18n="set_subtitle"></span></h2>
       <div class="grid2">
         <div>
-          <div class="sub" style="margin-bottom:6px">观察源（Agent 平台，同时作为 Skill 应用目标）</div>
+          <div class="sub" style="margin-bottom:6px" data-i18n="set_sources_label"></div>
           <div id="set-sources"></div>
         </div>
         <div>
-          <div class="sub" style="margin-bottom:6px">通知 / 输出渠道</div>
+          <div class="sub" style="margin-bottom:6px" data-i18n="set_sinks_label"></div>
           <div id="set-sinks"></div>
           <div class="fld" style="margin-top:10px">
-            <label>Slack Incoming Webhook（启用 Slack 渠道时填写）</label>
+            <label data-i18n="set_slack_label"></label>
             <input id="set-slack" type="text" placeholder="https://hooks.slack.com/services/..."/>
           </div>
         </div>
       </div>
       <div class="fld" style="margin-top:10px">
-        <label>应用到生产 · 默认目标平台</label>
+        <label data-i18n="set_target_label"></label>
         <select id="set-target"></select>
       </div>
       <div class="row" style="margin-top:6px">
-        <button class="primary" onclick="savePlatforms()">保存设置</button>
+        <button class="primary" onclick="savePlatforms()" data-i18n="set_save"></button>
         <span id="set-status" class="status"></span>
       </div>
-      <div class="note">留空 = 自动探测所有可用平台；改完即时生效（无需重启 server）。写回 config.local.json。</div>
+      <div class="note" data-i18n="set_note"></div>
     </div>
   </section>
 
   <section>
     <h2>Workflow Map <span class="n" id="mapcount"></span></h2>
     <div class="legend">
-      <span><i class="dot b-eliminate"></i>消除</span>
-      <span><i class="dot b-automate"></i>自动化</span>
-      <span><i class="dot b-skill"></i>Skill</span>
-      <span><i class="dot b-human"></i>人</span>
-      <span style="margin-left:auto">点击行查看详情</span>
+      <span><i class="dot b-eliminate"></i><span data-i18n="b_eliminate"></span></span>
+      <span><i class="dot b-automate"></i><span data-i18n="b_automate"></span></span>
+      <span><i class="dot b-skill"></i><span data-i18n="b_skill"></span></span>
+      <span><i class="dot b-human"></i><span data-i18n="b_human"></span></span>
+      <span style="margin-left:auto" data-i18n="legend_hint"></span>
     </div>
     <div id="maphead" class="sub"></div>
     <table id="maptable"><thead><tr>
-      <th>工作流</th><th>主桶</th><th>频率</th><th>估时/次</th><th>步骤分桶</th><th>下一步</th>
-    </tr></thead><tbody id="mapbody"><tr><td colspan="6">载入中…</td></tr></tbody></table>
+      <th data-i18n="th_wf"></th><th data-i18n="th_bucket"></th><th data-i18n="th_freq"></th>
+      <th data-i18n="th_est"></th><th data-i18n="th_steps"></th><th data-i18n="th_next"></th>
+    </tr></thead><tbody id="mapbody"><tr><td colspan="6" data-i18n="loading"></td></tr></tbody></table>
   </section>
 
   <section>
@@ -159,7 +165,7 @@
       <span class="n" id="skhint"></span>
       <select id="skplatform" style="margin-left:auto" onchange="loadSkills()"></select>
     </h2>
-    <div id="skills"><div class="sub">载入中…</div></div>
+    <div id="skills"><div class="sub" data-i18n="loading"></div></div>
   </section>
 </div>
 
@@ -168,16 +174,142 @@
 <aside class="drawer" id="drawer" role="dialog" aria-modal="true">
   <div class="hd">
     <div class="ttl" id="dwttl">—</div>
-    <button class="x" onclick="closeDrawer()" aria-label="关闭">×</button>
+    <button class="x" onclick="closeDrawer()" aria-label="Close">×</button>
   </div>
   <div class="bd" id="dwbd"></div>
   <div class="ft" id="dwft"></div>
 </aside>
 
 <script>
+/* ===================== i18n ===================== */
+const I18N = {
+  zh: {
+    sub: "观察 AI 协作会话，将复发工作流蒸馏为四类——消除 / 自动化 / Skill / 人。点击任意行可展开、编辑并应用到生产。",
+    settings_btn: "⚙ 设置",
+    set_title: "平台设置", set_subtitle: "配置观察源与通知渠道（可插拔）",
+    set_sources_label: "观察源（Agent 平台，同时作为 Skill 应用目标）",
+    set_sinks_label: "通知 / 输出渠道",
+    set_slack_label: "Slack Incoming Webhook（启用 Slack 渠道时填写）",
+    set_target_label: "应用到生产 · 默认目标平台",
+    set_save: "保存设置",
+    set_note: "留空 = 自动探测所有可用平台；保存后即时生效（无需重启）。写回 config.local.json。",
+    loading: "载入中…",
+    legend_hint: "点击行查看详情",
+    th_wf:"工作流", th_bucket:"主类", th_freq:"频率", th_est:"估时/次", th_steps:"步骤分类", th_next:"下一步",
+    b_eliminate:"消除", b_automate:"自动化", b_skill:"Skill", b_human:"人",
+    banner_meta: d => `近 ${d} 天 · 基于会话记录的实测计数`,
+    banner_headline: (s,a) => `本周 skill 调用 ${s} 次 · 自动化运行 ${a} 次`,
+    chip_skill: "skill 调用", chip_auto: "自动化运行",
+    chip_noskill: "本周无 skill 调用记录",
+    chip_est: m => `估算净省 ~${m}min`, chip_est_title: "估算值，仅供参考",
+    banner_err: m => `使用概览载入失败：${m}`,
+    mapcount: (n,sess,bs,meet) => `${n} 条 · 观察 ${sess} 个会话${bs} + ${meet} 场会议`,
+    map_empty: "尚未运行 distill", map_err: m => `Map 载入失败：${m}`,
+    sk_hint: (p,flow) => `平台 ${p} · 自主度：${flow}`,
+    sk_empty: "该平台暂无 Skill。可在 Workflow Map 中选择一行，通过「蒸馏成 Skill」生成。",
+    sk_flow: "编辑 Skill 内容与自主度；应用到生产时自动备份原版",
+    sk_err: m => `Skills 载入失败：${m}`,
+    unsupported: "（不支持）",
+    autonomy: { suggest:"仅建议", draft:"待批草稿", auto_notify:"自动 + 通知", full_auto:"全自动" },
+    dw_wf_title: n => `工作流 · ${n}`,
+    dw_meta: (f,e,n) => ` 频率 ${f} · ~${e}min/次 · 观察 ${n} 次`,
+    dw_summary:"摘要", dw_next:"下一步建议", dw_steps:"步骤 × 分类", dw_instances:"观察到的实例",
+    dw_nosteps:"（无步骤拆解）",
+    btn_close:"关闭", btn_cancel:"取消", btn_distill:"蒸馏成 Skill", btn_apply:"应用到生产",
+    promote_drafting:"正在生成 Skill 草稿…", promote_fail: e => `生成失败：${e}`,
+    read_fail:"读取失败",
+    ed_from: w => `由工作流「${w}」蒸馏生成的草稿，可编辑后应用。`,
+    ed_path: p => `当前生效文件：${p}`,
+    ed_name:"Skill 名（文件标识）", ed_target:"目标平台", ed_autonomy:"自主度",
+    ed_content:"内容（frontmatter + 正文）",
+    ed_note:"「应用到生产」会先将原版备份至 data/backups/，再原子写回该平台的对应路径。",
+    ed_title: (isNew,n) => `${isNew?"新建":"编辑"} Skill · ${n}`,
+    apply_empty:"名称 / 内容不能为空", apply_writing:"写入中…",
+    apply_ok: (p,b) => `已应用到生产 → ${p}${b?`（原版已备份 ${b}）`:""}`,
+    fail: e => `失败：${e}`,
+    pill_detected:"已检测", pill_undetected:"未检测", pill_avail:"可用", pill_unset:"未配置",
+    set_skilltarget: k => `Skill 目标：${k}`,
+    slack_masked:"********（已配置，留空不改）",
+    saving:"保存中…", saved: s => `已保存 ${s}（即时生效）`,
+  },
+  en: {
+    sub: "Observe AI coding sessions and distill recurring workflows into four categories — Eliminate / Automate / Skill / Human. Click any row to expand, edit, and apply to production.",
+    settings_btn: "⚙ Settings",
+    set_title: "Platform settings", set_subtitle: "Configure observation sources and delivery channels (pluggable)",
+    set_sources_label: "Observation sources (Agent platforms — also Skill targets)",
+    set_sinks_label: "Delivery channels",
+    set_slack_label: "Slack Incoming Webhook (required to enable Slack)",
+    set_target_label: "Apply to production · default target platform",
+    set_save: "Save",
+    set_note: "Empty = auto-detect all available platforms. Changes take effect immediately (no restart). Written to config.local.json.",
+    loading: "Loading…",
+    legend_hint: "Click a row for details",
+    th_wf:"Workflow", th_bucket:"Category", th_freq:"Frequency", th_est:"Est./run", th_steps:"Step breakdown", th_next:"Next step",
+    b_eliminate:"Eliminate", b_automate:"Automate", b_skill:"Skill", b_human:"Human",
+    banner_meta: d => `Last ${d} days · measured from session logs`,
+    banner_headline: (s,a) => `This week: ${s} skill invocation${s==1?"":"s"} · ${a} automation run${a==1?"":"s"}`,
+    chip_skill: "Skill invocations", chip_auto: "Automation runs",
+    chip_noskill: "No skill invocations this week",
+    chip_est: m => `Est. net saved ~${m}min`, chip_est_title: "Estimate, for reference only",
+    banner_err: m => `Failed to load overview: ${m}`,
+    mapcount: (n,sess,bs,meet) => `${n} workflows · ${sess} sessions${bs} + ${meet} meetings`,
+    map_empty: "distill has not run yet", map_err: m => `Failed to load Map: ${m}`,
+    sk_hint: (p,flow) => `Platform ${p} · Autonomy: ${flow}`,
+    sk_empty: "No Skills on this platform yet. Pick a row in the Workflow Map and use “Distill into Skill” to generate one.",
+    sk_flow: "Edit Skill content and autonomy; the previous version is backed up on apply.",
+    sk_err: m => `Failed to load Skills: ${m}`,
+    unsupported: " (unsupported)",
+    autonomy: { suggest:"Suggest only", draft:"Draft for review", auto_notify:"Auto + notify", full_auto:"Fully automatic" },
+    dw_wf_title: n => `Workflow · ${n}`,
+    dw_meta: (f,e,n) => ` Frequency ${f} · ~${e}min/run · observed ${n}×`,
+    dw_summary:"Summary", dw_next:"Recommended next step", dw_steps:"Steps × category", dw_instances:"Observed instances",
+    dw_nosteps:"(no step breakdown)",
+    btn_close:"Close", btn_cancel:"Cancel", btn_distill:"Distill into Skill", btn_apply:"Apply to production",
+    promote_drafting:"Generating Skill draft…", promote_fail: e => `Generation failed: ${e}`,
+    read_fail:"Failed to read",
+    ed_from: w => `Draft distilled from workflow “${w}”. Edit before applying.`,
+    ed_path: p => `Current file: ${p}`,
+    ed_name:"Skill name (file identifier)", ed_target:"Target platform", ed_autonomy:"Autonomy",
+    ed_content:"Content (frontmatter + body)",
+    ed_note:"“Apply to production” backs up the previous version to data/backups/, then atomically writes to the platform’s path.",
+    ed_title: (isNew,n) => `${isNew?"New":"Edit"} Skill · ${n}`,
+    apply_empty:"Name / content cannot be empty", apply_writing:"Writing…",
+    apply_ok: (p,b) => `Applied to production → ${p}${b?` (previous version backed up: ${b})`:""}`,
+    fail: e => `Failed: ${e}`,
+    pill_detected:"detected", pill_undetected:"not detected", pill_avail:"available", pill_unset:"not configured",
+    set_skilltarget: k => `Skill target: ${k}`,
+    slack_masked:"******** (configured; leave blank to keep)",
+    saving:"Saving…", saved: s => `Saved ${s} (effective immediately)`,
+  },
+};
+const ENLABEL = { claude_code:"Claude Code", cursor:"Cursor", codex:"Codex CLI",
+  feishu:"Feishu / Lark", local:"Local file (data/out)", slack:"Slack (Incoming Webhook)" };
+
+let LANG = localStorage.getItem("wd_lang")
+  || ((navigator.language||"").toLowerCase().startsWith("zh") ? "zh" : "en");
+function t(k,...a){ let v=(I18N[LANG]&&I18N[LANG][k]); if(v===undefined) v=I18N.zh[k]; if(v===undefined) v=k;
+  return typeof v==="function" ? v(...a) : v; }
+function autoLabel(val){ const m=(I18N[LANG]&&I18N[LANG].autonomy)||I18N.zh.autonomy; return m[val]||val; }
+function plabel(key,serverLabel){ return LANG==="en" ? (ENLABEL[key]||serverLabel) : serverLabel; }
+
+function applyStatic(){
+  document.documentElement.lang = (LANG==="zh"?"zh-CN":"en");
+  document.querySelectorAll("[data-i18n]").forEach(el=>{ el.textContent = t(el.getAttribute("data-i18n")); });
+  const lb=document.getElementById("langbtn");
+  lb.innerHTML = LANG==="zh" ? '<b>中</b><span> / EN</span>' : '<span>中 / </span><b>EN</b>';
+}
+function toggleLang(){
+  LANG = LANG==="zh" ? "en" : "zh";
+  localStorage.setItem("wd_lang", LANG);
+  applyStatic();
+  loadBanner().catch(()=>{}); loadMap().catch(()=>{}); loadSkills().catch(()=>{});
+  if(document.getElementById("settings").style.display!=="none") loadPlatforms().catch(()=>{});
+}
+
+/* ===================== app ===================== */
 const BUCKETS=["eliminate","automate","skill","human"];
 const BCOLOR={eliminate:"var(--eliminate)",automate:"var(--automate)",skill:"var(--skill)",human:"var(--human)"};
-const BZH={eliminate:"消除",automate:"自动化",skill:"Skill",human:"人"};
+const bname=b=>t("b_"+b)||b;
 const esc=s=>(s==null?"":String(s)).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let MAP={workflows:[]}, PLAT=null, SKILLPLATS=[];
 
@@ -191,15 +323,14 @@ async function loadBanner(){
   el.className="banner";
   const skillChips=Object.entries(u.by_skill||{})
     .map(([k,v])=>`<span class="chip">${esc(k)} <b>×${v}</b></span>`).join("");
-  const noUse=(u.skill_total===0)
-    ?`<span class="chip">本周无 skill 调用记录</span>`:"";
-  el.innerHTML=`<div class="big">${esc(u.headline)}</div>
-    <div class="meta">近 ${u.window_days} 天 · 基于会话记录的实测计数</div>
+  const noUse=(u.skill_total===0)?`<span class="chip">${esc(t("chip_noskill"))}</span>`:"";
+  el.innerHTML=`<div class="big">${esc(t("banner_headline",u.skill_total,u.automation_runs))}</div>
+    <div class="meta">${esc(t("banner_meta",u.window_days))}</div>
     <div class="chips">
-      <span class="chip">skill 调用 <b>${u.skill_total}</b></span>
-      <span class="chip">自动化运行 <b>${u.automation_runs}</b></span>
+      <span class="chip">${esc(t("chip_skill"))} <b>${u.skill_total}</b></span>
+      <span class="chip">${esc(t("chip_auto"))} <b>${u.automation_runs}</b></span>
       ${skillChips}${noUse}
-      <span class="chip" style="opacity:.55" title="估算值，仅供参考">估算净省 ~${u.est_net_min}min</span>
+      <span class="chip" style="opacity:.55" title="${esc(t("chip_est_title"))}">${esc(t("chip_est",u.est_net_min))}</span>
     </div>`;
 }
 
@@ -209,21 +340,21 @@ function bucketBar(steps){
   (steps||[]).forEach(st=>{if(c[st.bucket]!=null)c[st.bucket]++;});
   const total=Object.values(c).reduce((a,b)=>a+b,0)||1;
   const segs=BUCKETS.filter(b=>c[b]>0).map(b=>`<i style="width:${c[b]/total*100}%;background:${BCOLOR[b]}"></i>`).join("");
-  const lbl=BUCKETS.filter(b=>c[b]>0).map(b=>`${BZH[b]}×${c[b]}`).join(" / ");
+  const lbl=BUCKETS.filter(b=>c[b]>0).map(b=>`${bname(b)}×${c[b]}`).join(" / ");
   return `<div class="bar">${segs}</div><div class="barlabel">${lbl||"-"}</div>`;
 }
 async function loadMap(){
   MAP=await jget("/api/map");
   document.getElementById("maphead").textContent=MAP.headline||"";
-  const bs=MAP.by_source?Object.entries(MAP.by_source).map(([k,v])=>`${k}:${v}`).join(" "):"";
+  const bs=MAP.by_source?" ("+Object.entries(MAP.by_source).map(([k,v])=>`${k}:${v}`).join(" ")+")":"";
   document.getElementById("mapcount").textContent=
-    `${(MAP.workflows||[]).length} 条 · 观察 ${MAP.n_sessions||"?"} session${bs?(" ("+bs+")"):""} + ${MAP.n_meetings||"?"} 会议`;
+    t("mapcount",(MAP.workflows||[]).length, MAP.n_sessions||"?", bs, MAP.n_meetings||"?");
   const body=document.getElementById("mapbody");
-  if(!(MAP.workflows||[]).length){body.innerHTML='<tr><td colspan="6">还没跑 distill</td></tr>';return;}
+  if(!(MAP.workflows||[]).length){body.innerHTML=`<tr><td colspan="6">${esc(t("map_empty"))}</td></tr>`;return;}
   body.innerHTML=MAP.workflows.map((w,i)=>`
     <tr class="click" onclick="openWorkflow(${i})">
       <td><div class="wf">${esc(w.name)}</div><div class="sm">${esc(w.summary||"")}</div></td>
-      <td><span class="badge b-${w.primary_bucket}">${BZH[w.primary_bucket]||esc(w.primary_bucket)}</span></td>
+      <td><span class="badge b-${w.primary_bucket}">${esc(bname(w.primary_bucket))}</span></td>
       <td>${esc(w.frequency)}</td>
       <td>~${esc(w.est_minutes_per_run)}min<div class="sm">×${esc(w.n_observed)}</div></td>
       <td>${bucketBar(w.steps)}</td>
@@ -238,23 +369,23 @@ async function loadSkills(){
   const data=await jget("/api/skills"+(pk?`?platform=${encodeURIComponent(pk)}`:""));
   SKILLPLATS=data.platforms||[];
   window.SKLEVELS=data.levels||[];
-  if(!sel.dataset.init){
-    sel.innerHTML=(data.platforms||[]).map(p=>`<option value="${p.key}" ${p.key===data.platform?"selected":""}>${esc(p.label)}${p.writable?"":"（不支持）"}</option>`).join("");
-    sel.dataset.init="1";
-  }
-  document.getElementById("skhint").textContent=`平台 ${data.platform} · 自主度：建议 → 待批草稿 → 自动+通知 → 全自动`;
+  // platform options re-rendered each time so labels follow language
+  const cur=sel.value||data.platform;
+  sel.innerHTML=(data.platforms||[]).map(p=>`<option value="${p.key}" ${p.key===cur?"selected":""}>${esc(plabel(p.key,p.label))}${p.writable?"":esc(t("unsupported"))}</option>`).join("");
+  const flow=["suggest","draft","auto_notify","full_auto"].map(autoLabel).join(" → ");
+  document.getElementById("skhint").textContent=t("sk_hint", plabel(data.platform,data.platform), flow);
   const box=document.getElementById("skills");
   const items=data.skills||[];
-  if(!items.length){box.innerHTML=`<div class="sub">该平台暂无 Skill。可在 Workflow Map 中选择一行，通过「蒸馏成 Skill」生成。</div>`;return;}
+  if(!items.length){box.innerHTML=`<div class="sub">${esc(t("sk_empty"))}</div>`;return;}
   box.innerHTML=items.map((s,i)=>`
     <div class="skill" onclick="openSkill('${esc(s.platform)}','${esc(s.name)}')">
       <div>
         <div class="nm">${esc(s.display||s.name)}</div>
         <div class="ds">${esc(s.description)}</div>
-        <div class="flow">编辑 Skill 内容与自主度；应用到生产时自动备份原版</div>
+        <div class="flow">${esc(t("sk_flow"))}</div>
       </div>
       <select onclick="event.stopPropagation()" onchange="quickAutonomy(event,'${esc(s.platform)}','${esc(s.name)}',this)">
-        ${(data.levels||[]).map(l=>`<option value="${l.value}" ${l.value===s.autonomy?"selected":""}>${l.label}</option>`).join("")}
+        ${(data.levels||[]).map(l=>`<option value="${l.value}" ${l.value===s.autonomy?"selected":""}>${esc(autoLabel(l.value))}</option>`).join("")}
       </select>
     </div>`).join("");
 }
@@ -284,34 +415,34 @@ function openWorkflow(i){
   const w=MAP.workflows[i];if(!w)return;
   CURWF=w.name;
   const steps=(w.steps||[]).map((s,j)=>`<div class="stepline">
-      <span class="badge b-${s.bucket}">${BZH[s.bucket]||esc(s.bucket)}</span>
+      <span class="badge b-${s.bucket}">${esc(bname(s.bucket))}</span>
       <b style="margin-left:6px">${j+1}.</b> ${esc(s.desc)}
-      <div class="note">→ ${esc(s.next_action||"")}</div></div>`).join("")||"<div class='note'>（无步骤拆解）</div>";
-  const inst=(w.instances||[]).length?`<div class="fld"><label>观察到的实例</label><div class="note">${(w.instances||[]).map(esc).join("、")}</div></div>`:"";
+      <div class="note">→ ${esc(s.next_action||"")}</div></div>`).join("")||`<div class='note'>${esc(t("dw_nosteps"))}</div>`;
+  const inst=(w.instances||[]).length?`<div class="fld"><label>${esc(t("dw_instances"))}</label><div class="note">${(w.instances||[]).map(esc).join("、")}</div></div>`:"";
   const body=`
-    <div class="fld"><span class="badge b-${w.primary_bucket}">${BZH[w.primary_bucket]||esc(w.primary_bucket)}</span>
-      <span class="note"> 频率 ${esc(w.frequency)} · ~${esc(w.est_minutes_per_run)}min/次 · 观察 ${esc(w.n_observed)} 次</span></div>
-    <div class="fld"><label>摘要</label>${esc(w.summary||"")}</div>
-    <div class="fld"><label>下一步建议</label>${esc(w.recommendation||"")}</div>
-    <div class="fld"><label>步骤 × 分桶</label>${steps}</div>${inst}`;
+    <div class="fld"><span class="badge b-${w.primary_bucket}">${esc(bname(w.primary_bucket))}</span>
+      <span class="note">${esc(t("dw_meta",w.frequency,w.est_minutes_per_run,w.n_observed))}</span></div>
+    <div class="fld"><label>${esc(t("dw_summary"))}</label>${esc(w.summary||"")}</div>
+    <div class="fld"><label>${esc(t("dw_next"))}</label>${esc(w.recommendation||"")}</div>
+    <div class="fld"><label>${esc(t("dw_steps"))}</label>${steps}</div>${inst}`;
   const foot=`<span id="dwstatus" class="status"></span>
-    <button onclick="closeDrawer()">关闭</button>
-    <button class="primary" onclick="promote()">蒸馏成 Skill</button>`;
-  openDrawerShell(`工作流 · ${esc(w.name)}`,body,foot);
+    <button onclick="closeDrawer()">${esc(t("btn_close"))}</button>
+    <button class="primary" onclick="promote()">${esc(t("btn_distill"))}</button>`;
+  openDrawerShell(esc(t("dw_wf_title",w.name)),body,foot);
 }
 
 async function promote(){
   const name=CURWF;if(!name)return;
-  setStatus("正在生成 SKILL 草稿…",true);
+  setStatus(t("promote_drafting"),true);
   document.querySelector("#dwft .primary").disabled=true;
   const j=await jpost("/api/skill/promote",{workflow:name});
-  if(!j.ok){setStatus("起草失败："+(j.error||"?"),false);document.querySelector("#dwft .primary").disabled=false;return;}
+  if(!j.ok){setStatus(t("promote_fail",j.error||"?"),false);document.querySelector("#dwft .primary").disabled=false;return;}
   openSkillEditor(j.platform,j.name,j.content,{isNew:true,fromWorkflow:name});
 }
 
 async function openSkill(platform,name){
   const j=await jget(`/api/skill?platform=${encodeURIComponent(platform)}&name=${encodeURIComponent(name)}`);
-  if(!j.ok){alert("读取失败");return;}
+  if(!j.ok){alert(t("read_fail"));return;}
   openSkillEditor(platform,name,j.content,{isNew:false,path:j.path});
 }
 
@@ -319,24 +450,24 @@ function openSkillEditor(platform,name,content,opt){
   opt=opt||{};
   const plat=SKILLPLATS.find(p=>p.key===platform)||{label:platform};
   const levels=window.SKLEVELS||[];
-  const tgtSel=`<select id="ed-platform">${SKILLPLATS.filter(p=>p.writable).map(p=>`<option value="${p.key}" ${p.key===platform?"selected":""}>${esc(p.label)}</option>`).join("")}</select>`;
-  const autoSel=`<select id="ed-autonomy">${levels.map(l=>`<option value="${l.value}" ${l.value==="suggest"?"selected":""}>${l.label}</option>`).join("")}</select>`;
-  const fromTag=opt.fromWorkflow?`<div class="note">由工作流「${esc(opt.fromWorkflow)}」蒸馏生成的草稿，可编辑后应用。</div>`:"";
-  const pathTag=opt.path?`<div class="note">当前生效文件：${esc(opt.path)}</div>`:"";
+  const tgtSel=`<select id="ed-platform">${SKILLPLATS.filter(p=>p.writable).map(p=>`<option value="${p.key}" ${p.key===platform?"selected":""}>${esc(plabel(p.key,p.label))}</option>`).join("")}</select>`;
+  const autoSel=`<select id="ed-autonomy">${levels.map(l=>`<option value="${l.value}" ${l.value==="suggest"?"selected":""}>${esc(autoLabel(l.value))}</option>`).join("")}</select>`;
+  const fromTag=opt.fromWorkflow?`<div class="note">${esc(t("ed_from",opt.fromWorkflow))}</div>`:"";
+  const pathTag=opt.path?`<div class="note">${esc(t("ed_path",opt.path))}</div>`:"";
   const body=`
     ${fromTag}
-    <div class="fld"><label>Skill 名（文件标识）</label><input id="ed-name" type="text" value="${esc(name)}"/></div>
+    <div class="fld"><label>${esc(t("ed_name"))}</label><input id="ed-name" type="text" value="${esc(name)}"/></div>
     <div class="row" style="margin-bottom:12px">
-      <div class="fld" style="flex:1;margin:0"><label>目标平台</label>${tgtSel}</div>
-      <div class="fld" style="flex:1;margin:0"><label>自主度</label>${autoSel}</div>
+      <div class="fld" style="flex:1;margin:0"><label>${esc(t("ed_target"))}</label>${tgtSel}</div>
+      <div class="fld" style="flex:1;margin:0"><label>${esc(t("ed_autonomy"))}</label>${autoSel}</div>
     </div>
-    <div class="fld"><label>内容（frontmatter + 正文）</label>
+    <div class="fld"><label>${esc(t("ed_content"))}</label>
       <textarea id="ed-content">${esc(content)}</textarea>${pathTag}</div>
-    <div class="note">「应用到生产」会先把旧版备份到 data/backups/，再原子写回该平台的对应路径。${esc(plat.skill_note||"")}</div>`;
+    <div class="note">${esc(t("ed_note"))}${plat.skill_note?(" "+esc(plat.skill_note)):""}</div>`;
   const foot=`<span id="dwstatus" class="status"></span>
-    <button onclick="closeDrawer()">取消</button>
-    <button class="primary" id="ed-apply" onclick="applySkill()">应用到生产</button>`;
-  openDrawerShell(`${opt.isNew?"新建":"编辑"} Skill · ${esc(name)}`,body,foot);
+    <button onclick="closeDrawer()">${esc(t("btn_cancel"))}</button>
+    <button class="primary" id="ed-apply" onclick="applySkill()">${esc(t("btn_apply"))}</button>`;
+  openDrawerShell(esc(t("ed_title",opt.isNew,name)),body,foot);
 }
 
 async function applySkill(){
@@ -344,16 +475,16 @@ async function applySkill(){
   const name=document.getElementById("ed-name").value.trim();
   const content=document.getElementById("ed-content").value;
   const autonomy=document.getElementById("ed-autonomy").value;
-  if(!name||!content.trim()){setStatus("name / 内容不能为空",false);return;}
+  if(!name||!content.trim()){setStatus(t("apply_empty"),false);return;}
   document.getElementById("ed-apply").disabled=true;
-  setStatus("写入中…",true);
+  setStatus(t("apply_writing"),true);
   const j=await jpost("/api/skill",{platform,name,content,autonomy});
   if(j.ok){
-    setStatus("已应用到生产 → "+j.path+(j.backup?("（原版已备份 "+j.backup.split("/").pop()+"）"):""),true);
+    setStatus(t("apply_ok", j.path, j.backup?j.backup.split("/").pop():""),true);
     await loadSkills();
     setTimeout(closeDrawer,1100);
   }else{
-    setStatus("失败："+(j.error||"?"),false);
+    setStatus(t("fail",j.error||"?"),false);
     document.getElementById("ed-apply").disabled=false;
   }
 }
@@ -369,13 +500,13 @@ async function loadPlatforms(){
   PLAT=await jget("/api/platforms");
   document.getElementById("set-sources").innerHTML=PLAT.sources.map(p=>`
     <label class="chk"><input type="checkbox" class="src" value="${p.key}" ${p.enabled?"checked":""} ${p.available?"":"disabled"}/>
-      <div><div class="l">${esc(p.label)} <span class="pill ${p.available?"on":"off"}">${p.available?"已检测":"未检测"}</span></div>
-      <div class="d">Skill 目标：${esc(p.skill_kind)}${p.skill_note?("　"+esc(p.skill_note)):""}</div></div></label>`).join("");
+      <div><div class="l">${esc(plabel(p.key,p.label))} <span class="pill ${p.available?"on":"off"}">${esc(p.available?t("pill_detected"):t("pill_undetected"))}</span></div>
+      <div class="d">${esc(t("set_skilltarget",p.skill_kind))}${p.skill_note?("　"+esc(p.skill_note)):""}</div></div></label>`).join("");
   document.getElementById("set-sinks").innerHTML=PLAT.sinks.map(s=>`
     <label class="chk"><input type="checkbox" class="snk" value="${s.key}" ${s.enabled?"checked":""}/>
-      <div><div class="l">${esc(s.label)} <span class="pill ${s.available?"on":"off"}">${s.available?"可用":"未配置"}</span></div></div></label>`).join("");
-  document.getElementById("set-target").innerHTML=PLAT.sources.map(p=>`<option value="${p.key}" ${p.key===PLAT.skill_target?"selected":""}>${esc(p.label)}</option>`).join("");
-  document.getElementById("set-slack").value=PLAT.slack_webhook_set?"********（已配置，留空不改）":"";
+      <div><div class="l">${esc(plabel(s.key,s.label))} <span class="pill ${s.available?"on":"off"}">${esc(s.available?t("pill_avail"):t("pill_unset"))}</span></div></div></label>`).join("");
+  document.getElementById("set-target").innerHTML=PLAT.sources.map(p=>`<option value="${p.key}" ${p.key===PLAT.skill_target?"selected":""}>${esc(plabel(p.key,p.label))}</option>`).join("");
+  document.getElementById("set-slack").value=PLAT.slack_webhook_set?t("slack_masked"):"";
 }
 async function savePlatforms(){
   const sources=[...document.querySelectorAll(".src:checked")].map(e=>e.value);
@@ -385,18 +516,19 @@ async function savePlatforms(){
   const slack=document.getElementById("set-slack").value;
   if(slack && !slack.startsWith("*"))body.slack_webhook=slack;
   const st=document.getElementById("set-status");
-  st.textContent="保存中…";st.className="status";
+  st.textContent=t("saving");st.className="status";
   const j=await jpost("/api/platforms",body);
-  if(j.ok){st.textContent="已保存 "+(j.saved||[]).join("、")+"（即时生效）";st.className="status ok";
+  if(j.ok){st.textContent=t("saved",(j.saved||[]).join(", "));st.className="status ok";
     loadMap();loadSkills();
-  }else{st.textContent="失败："+(j.error||"?");st.className="status bad";}
+  }else{st.textContent=t("fail",j.error||"?");st.className="status bad";}
 }
 
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
 
-loadBanner().catch(e=>{document.getElementById("banner").innerHTML=`<div class="err">省时数据载入失败：${esc(e.message)}</div>`;});
-loadMap().catch(e=>{document.getElementById("mapbody").innerHTML=`<tr><td colspan="6" class="err">Map 载入失败：${esc(e.message)}</td></tr>`;});
-loadSkills().catch(e=>{document.getElementById("skills").innerHTML=`<div class="err">Skills 载入失败：${esc(e.message)}</div>`;});
+applyStatic();
+loadBanner().catch(e=>{document.getElementById("banner").innerHTML=`<div class="err">${esc(t("banner_err",e.message))}</div>`;});
+loadMap().catch(e=>{document.getElementById("mapbody").innerHTML=`<tr><td colspan="6" class="err">${esc(t("map_err",e.message))}</td></tr>`;});
+loadSkills().catch(e=>{document.getElementById("skills").innerHTML=`<div class="err">${esc(t("sk_err",e.message))}</div>`;});
 </script>
 </body>
 </html>
