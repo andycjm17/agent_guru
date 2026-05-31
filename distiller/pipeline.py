@@ -58,7 +58,8 @@ def main(argv=None):
         C.log(f"pipeline: render 失败但 map.json 已落盘，可单独重跑 render：{e!r}")
         print(f"      ⚠ render 异常（map.json 已保存，可 python -m distiller.render 重试）：{e!r}\n")
 
-    # 省时 summary
+    # 省时 summary（先从真实自动化源补记账本，让 banner 反映真实活动）
+    S.reconcile()
     sv = S.summary(7)
     print("---------- 省时 punchline ----------")
     print(f"  {sv['punchline']}")

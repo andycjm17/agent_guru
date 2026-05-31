@@ -103,6 +103,7 @@ def run_retro(dry_run: bool = False, skip_distill: bool = False, force: bool = F
         C.log(f"retro: distill {len(new_map.get('workflows', []))} 工作流")
 
     new_names = _names(new_map) - old_names
+    S.reconcile()   # 补记本周真实自动化（会议速递等），再算省时
     sv = S.summary(7)
     dm = build_dm(week, new_names, new_map, sv)
 

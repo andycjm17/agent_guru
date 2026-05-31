@@ -36,6 +36,7 @@ from urllib.parse import urlparse, parse_qs
 
 from . import config as C
 from . import savings as S
+from . import usage as U
 from . import agents as A
 from . import sinks as K
 
@@ -205,7 +206,22 @@ class Handler(BaseHTTPRequestHandler):
                 days = int(raw)
             except (TypeError, ValueError):
                 return self._send(400, {"error": f"非法 days: {raw!r}"})
+            try:
+                S.reconcile()   # 幂等：每次看 banner 都从真实自动化源补记，保证数字是活的
+            except Exception as e:
+                C.log(f"server: savings.reconcile 异常（忽略）: {e!r}")
             self._send(200, S.summary(min(days, 36500)))
+        elif path == "/api/usage":
+            raw = (q.get("days", ["7"])[0]) or "7"
+            try:
+                days = int(raw)
+            except (TypeError, ValueError):
+                return self._send(400, {"error": f"非法 days: {raw!r}"})
+            try:
+                S.reconcile()   # 让 automation_runs 计数也保持实时
+            except Exception as e:
+                C.log(f"server: savings.reconcile 异常（忽略）: {e!r}")
+            self._send(200, U.summary(min(days, 36500)))
         elif path == "/api/skills":
             pk = (q.get("platform", [""])[0]) or A.skill_target_platform().key
             self._send(200, {
