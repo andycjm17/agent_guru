@@ -1,58 +1,62 @@
 {
-  "_说明": "复制本文件为 config.local.json 并填入你自己的值（或运行 ./install.sh 自动生成）。所有字段可选；留空则相应功能优雅降级。",
-
-  "lark_user_id": "",
-  "_lark_user_id": "你的飞书 open_id（ou_ 开头），retro/weekly 的 DM 发给它。空 = 禁用 DM。可用 install.sh 自动探测。",
-
-  "weekly_doc_url": "",
-  "_weekly_doc_url": "你的『周报』Lark 文档 URL，weekly_update --approve 会把新一周追加到这里。空 = 禁用 --approve 推送（仍可出草稿）。",
-
-  "tracked_people": [],
-  "_tracked_people": "周报里单列『XX 开发跟进』的人名数组，如 [\"张三\",\"李四\"]。空 = 不输出该节。",
-
-  "ui_port": 8787,
-  "_ui_port": "本地 UI 端口。",
+  "_说明": "复制本文件为 config.local.json 并填写所需字段（或运行 ./install.sh 自动生成）。所有字段均为可选，留空时相应功能自动降级。",
 
   "sources": [],
-  "_sources": "启用的 Agent 观察源（也是 Skill 落地目标）：claude_code | cursor | codex。空数组 = 自动探测所有可用。可用 `python -m distiller.setup` 向导或 UI『⚙ 设置』面板勾选。",
+  "_sources": "启用的观察源（同时作为 Skill 应用目标）：claude_code | cursor | codex。空数组表示自动探测所有可用平台。可通过 `python -m distiller.setup` 或 Dashboard「⚙ 设置」配置。",
 
   "sinks": [],
-  "_sinks": "启用的通知/输出渠道：feishu | local | slack。空数组 = 自动（飞书可用则飞书，否则 local 兜底）。",
+  "_sinks": "启用的通知渠道：feishu | local | slack。空数组表示自动选择（飞书可用则用飞书，否则回退至本地）。",
 
   "skill_target": "",
-  "_skill_target": "UI 里『应用到生产』默认把 Skill 写到哪个平台（claude_code/cursor/codex）。空 = 首个可写的启用平台。",
+  "_skill_target": "Dashboard 中 Skill 的应用目标平台（claude_code / cursor / codex）。留空时自动选择首个可写的启用平台。",
 
   "slack_webhook": "",
-  "_slack_webhook": "Slack Incoming Webhook URL（https://hooks.slack.com/services/...）。填了 slack sink 才发得出；空 = slack 渠道降级跳过。",
+  "_slack_webhook": "Slack Incoming Webhook URL（https://hooks.slack.com/services/...）。启用 slack 渠道时必填；留空则跳过 Slack。",
 
   "cursor_rules_dir": "",
-  "_cursor_rules_dir": "Cursor 的 Skill(.mdc) 落地目录。Cursor 无全局 rules 目录，建议指向某项目的 .cursor/rules；空 = ~/.cursor/rules（best-effort）。",
+  "_cursor_rules_dir": "Cursor 的 Skill（.mdc）应用目录。Cursor 无全局 rules 目录，建议指向某个项目的 .cursor/rules。留空时使用 ~/.cursor/rules。",
 
   "codex_home": "",
-  "_codex_home": "Codex CLI 根目录，默认 ~/.codex（会话在 sessions/，Skill 落地到 prompts/）。一般无需改。",
+  "_codex_home": "Codex CLI 根目录，默认 ~/.codex（会话位于 sessions/，Skill 写入 prompts/）。通常无需修改。",
 
   "llm_provider": "auto",
-  "_llm_provider": "蒸馏/周报的 LLM 后端：auto(默认,自动择优) | claude(Claude Code) | aime(字节AIME,随bytedcli) | mira(下方HTTP网关)。无 claude 时自动用 aime。",
+  "_llm_provider": "蒸馏与周报使用的 LLM 后端：auto（默认，自动择优）| claude | aime（字节 AIME，随 bytedcli）| mira（HTTP 网关，见下）。无 claude 时自动切换至 aime。",
 
   "mira_endpoint": "",
   "mira_token": "",
   "mira_model": "",
-  "_mira": "可选：把 Mira/ModelHub 等 OpenAI 兼容网关作为 LLM 后端。填 mira_endpoint(chat/completions URL) 即启用；mira_token=Bearer，mira_model=模型名。",
+  "_mira": "可选：将 Mira / ModelHub 等 OpenAI 兼容网关作为 LLM 后端。填写 mira_endpoint（chat/completions URL）即启用；mira_token 为 Bearer，mira_model 为模型名。",
+
+  "lark_user_id": "",
+  "_lark_user_id": "飞书 open_id（ou_ 开头），用于 retro / weekly 的 DM 收件人。留空时自动探测当前用户；探测失败则禁用 DM。",
+
+  "weekly_doc_url": "",
+  "_weekly_doc_url": "周报 Lark 文档 URL；weekly_update --approve 将新一周追加至此。留空时首次 --approve 自动创建。",
+
+  "tracked_people": [],
+  "_tracked_people": "周报中单列开发跟进的人员，如 [\"张三\", \"李四\"]。留空时不输出该节。",
+
+  "meeting_saved_min": 15,
+  "meeting_overhead_min": 1,
+  "_meeting_savings": "省时估算口径（分钟）：每场被自动速递 action 的会议，估算节省的手动整理时长（saved）与自动化开销（overhead）。仅用于 Dashboard 的估算项，可按实际校准。",
+
+  "ui_port": 8787,
+  "_ui_port": "Dashboard 端口。",
 
   "cursor_enabled": "auto",
-  "_cursor_enabled": "是否把 Cursor 会话并入观察语料：auto(默认,检测到就用) | false 关闭。",
+  "_cursor_enabled": "是否将 Cursor 会话并入观察：auto（默认，检测到即启用）| false（关闭）。",
 
   "cursor_storage_dir": "",
-  "_cursor_storage_dir": "Cursor 的 User 目录（含 globalStorage/state.vscdb）。留空自动按平台默认查找。",
+  "_cursor_storage_dir": "Cursor 的 User 目录（含 globalStorage/state.vscdb）。留空时按平台默认位置查找。",
 
   "bytedcli_path": "",
   "lark_cli_path": "",
   "claude_path": "",
-  "_cli_paths": "三个 CLI 的绝对路径。留空则用 PATH 自动探测（which）。仅在非标准安装位置时才需填。",
+  "_cli_paths": "三个 CLI 的绝对路径。留空时通过 PATH 自动探测（which）；仅在非标准安装位置时填写。",
 
   "claude_projects_dir": "",
-  "_claude_projects_dir": "Claude Code session 目录，默认 ~/.claude/projects。一般无需改。",
+  "_claude_projects_dir": "Claude Code 会话目录，默认 ~/.claude/projects。通常无需修改。",
 
   "meeting_state_file": "",
-  "_meeting_state_file": "可选：meeting-actions 的 state/processed.json，用于把会议并入语料。无则忽略。"
+  "_meeting_state_file": "可选：meeting-actions 的 state/processed.json，用于并入会议数据。留空则忽略。"
 }

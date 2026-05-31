@@ -4,7 +4,7 @@
 setup.py — 首次平台选择向导（解绑 Claude Code + 飞书）
 
 探测本机可用的 Agent 平台（Claude Code / Cursor / Codex）与通知渠道（飞书 / 本地 / Slack），
-让你勾选常用的，写回 config.local.json。UI 的「⚙ 设置」面板是同款能力，二选一即可。
+允许选择常用的配置，写回 config.local.json。UI 的「⚙ 设置」面板是同款能力，二选一即可。
 
 用法:
   python -m distiller.setup            # 交互向导
@@ -29,8 +29,8 @@ def _detect_lines() -> list:
             av = p.available()
         except Exception:
             av = False
-        lines.append(f"    {OK if av else NO} {p.label}  —  skill 落地：{p.skill_kind}")
-    lines.append("  通知 / 输出渠道（sink）:")
+        lines.append(f"    {OK if av else NO} {p.label}  —  Skill 目标：{p.skill_kind}")
+    lines.append("  通知/输出渠道：")
     for s in K.all_sinks():
         try:
             av = s.available()
@@ -78,9 +78,9 @@ def run_wizard(auto: bool = False) -> dict:
     if auto:
         sources, sinks_sel = src_default, snk_default
     else:
-        sources = _ask_multi("① 选「观察源」（工具观察你在这些平台的会话来蒸馏工作流）：",
+        sources = _ask_multi("① 观察源（工具将采集这些平台上的会话以蒸馏工作流）：",
                              src_opts, src_default)
-        sinks_sel = _ask_multi("② 选「通知/输出渠道」（周复盘 DM、Map/周报发到哪）：",
+        sinks_sel = _ask_multi("② 通知渠道（复盘、Map、周报的发送目标）：",
                               snk_opts, snk_default)
 
     patch = {"sources": sources, "sinks": sinks_sel}
@@ -92,14 +92,14 @@ def run_wizard(auto: bool = False) -> dict:
         patch["skill_target"] = target_default
     else:
         tgt_opts = [(p.key, p.label) for p in A.all_platforms() if p.skills_root() is not None]
-        patch["skill_target"] = _ask_one("③ 「应用到生产」默认把 Skill 落地到哪个平台：",
+        patch["skill_target"] = _ask_one("③ 默认应用到生产的目标平台：",
                                          tgt_opts, target_default)
 
     if "slack" in sinks_sel and not C.live_cfg("slack_webhook", ""):
         if auto:
-            print("  ⚠ 选了 Slack 但未配 slack_webhook —— 请稍后在 config.local.json 填 https://hooks.slack.com/...")
+            print("  ⚠ 已启用 Slack 但未配置 slack_webhook —— 请在 config.local.json 中填写 https://hooks.slack.com/...")
         else:
-            wh = input("\n④ Slack Incoming Webhook URL（选了 slack 才需要，回车跳过）： ").strip()
+            wh = input("\n④ Slack Incoming Webhook URL（启用 Slack 时填写，回车跳过）： ").strip()
             if wh:
                 patch["slack_webhook"] = wh
 
@@ -128,7 +128,7 @@ def main(argv=None):
     try:
         run_wizard(auto="--auto" in argv)
     except (EOFError, KeyboardInterrupt):
-        print("\n（已取消，未改配置）")
+        print("\n已取消，未修改配置。")
         return 1
     return 0
 

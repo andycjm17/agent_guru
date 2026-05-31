@@ -95,7 +95,7 @@ def main(argv=None) -> int:
     lines.append("")
     enabled_src = {p.key for p in A.enabled_platforms()}
     sel = C.live_cfg("sources", None)
-    lines.append(f"观察源（启用 = {'config 指定' if isinstance(sel, list) and sel else '自动探测所有可用'}）：")
+    lines.append(f"观察源（启用 = {'配置指定' if isinstance(sel, list) and sel else '自动探测所有可用'}）：")
     total_sessions = 0
     for p in A.all_platforms():
         try:
@@ -112,19 +112,19 @@ def main(argv=None) -> int:
         mark = OK if (av and p.key in enabled_src) else (WARN if av else NO)
         state = (f"{n} 条会话" if n >= 0 else "未检测/不可用")
         en = "启用" if p.key in enabled_src else "未启用"
-        lines.append(f"  {mark} {p.label}: {state}（{en}；skill 落地 {p.skill_kind}）")
+        lines.append(f"  {mark} {p.label}: {state}（{en}；Skill 目标 {p.skill_kind}）")
     if total_sessions == 0:
-        lines.append(f"  {BAD} 所有启用观察源都没有可观察会话——先用 Claude/Cursor/Codex 干点活")
+        lines.append(f"  {BAD} 所有启用的观察源均无可观察会话；请先在 Claude / Cursor / Codex 中产生会话记录")
         hard_fail = True
     meet = pathlib.Path(C.MEETING_STATE)
-    lines.append(f"  {OK if meet.exists() else WARN} 会议语料(可选): {meet}"
+    lines.append(f"  {OK if meet.exists() else WARN} 会议摘要(可选): {meet}"
                  + ("" if meet.exists() else "（无，跳过会议旁路）"))
 
-    # 4) 通知 / 输出渠道（可插拔：feishu / local / slack，至少一个可用）
+    # 4) 通知/输出渠道（可插拔：feishu / local / slack，至少一个可用）
     lines.append("")
     snk_sel = C.live_cfg("sinks", None)
     enabled_snk = {s.key for s in K.enabled_sinks()}
-    lines.append(f"通知/输出渠道（启用 = {'config 指定' if isinstance(snk_sel, list) and snk_sel else '自动'}）：")
+    lines.append(f"通知/输出渠道（启用 = {'配置指定' if isinstance(snk_sel, list) and snk_sel else '自动'}）：")
     any_sink = False
     for s in K.all_sinks():
         try:
@@ -136,11 +136,11 @@ def main(argv=None) -> int:
         en = "启用" if s.key in enabled_snk else "未启用"
         lines.append(f"  {mark} {s.label}: {'可用' if av else '未配置'}（{en}）")
     if not any_sink:
-        lines.append(f"  {WARN} 无启用且可用的渠道——已自动兜底 local（写 data/out/）")
+        lines.append(f"  {WARN} 无启用且可用的渠道；已自动回退至 local（写入 data/out/）")
 
     # 5) 飞书身份（可选：仅 feishu 渠道需要；缺失只降级，不再硬阻断）
     lines.append("")
-    lines.append("飞书身份（仅 feishu 渠道需要，缺失=降级）：")
+    lines.append("飞书身份（仅 feishu 渠道需要，缺失时降级）：")
     open_id = C.resolve_lark_user_id()
     if open_id:
         src = "config" if C.LARK_USER_ID else "自动探测/缓存"
@@ -177,7 +177,7 @@ def main(argv=None) -> int:
     if hard_fail:
         lines.append(f"{BAD} 有硬性缺失，核心功能不可用——见上方 {BAD} 项。")
     else:
-        lines.append(f"{OK} 核心就绪。{WARN} 项为按配置的功能降级，可选补齐。")
+        lines.append(f"{OK} 核心功能就绪。{WARN} 项为按配置降级，可按需补齐。")
         lines.append("下一步：python3 -m distiller.pipeline  然后  python3 -m distiller.server")
     print("\n".join(lines))
     return 1 if hard_fail else 0

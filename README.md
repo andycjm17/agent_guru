@@ -1,75 +1,90 @@
-# workflow-distiller · v1
+# workflow-distiller
 
-静默旁观你用 AI 干活，把复发工作流持续蒸馏进四个桶 —— **消除 / 自动化 / Skill / 人**，
-并把 Skill 和自动化真正生成出来跑起来，让时间向不可替代的人类部分迁移。
+workflow-distiller 观察 AI 协作会话，将反复出现的工作流蒸馏为四类——**消除 / 自动化 / Skill / 人**——并直接生成可运行的 Skill 与自动化，让精力向不可替代的人类判断迁移。
 
-> 零配置：自动探测平台与身份、文档自动创建、无人名硬编码。部署见 [SETUP.md](SETUP.md)。
->
-> **可插拔、不强绑定**：观察源 = Claude Code / Cursor / Codex（三选 N，也是 Skill 落地目标）；
-> 通知渠道 = 飞书 / 本地文件 / Slack；LLM 后端 = claude / 字节 AIME / Mira 网关。
-> 用 `python3 -m distiller.setup` 向导或 UI「⚙ 设置」面板选平台。
+- **可插拔，不绑定单一平台**
+  - 观察源：Claude Code / Cursor / Codex（任选其一或多个，同时作为 Skill 的应用目标）
+  - 通知渠道：飞书 / 本地文件 / Slack
+  - LLM 后端：Claude / 字节 AIME / Mira 网关
+- **零配置启动**：平台与身份自动探测，文档首次自动创建，无个人信息硬编码。
+- **纯标准库**：Python ≥ 3.9，不依赖任何 pip 包。
 
-## 快速上手
+部署说明见 [SETUP.md](SETUP.md)。
+
+## 快速开始
 
 ```bash
-cd <你解包/克隆的目录>
+# 1. （可选）选择平台：观察源 / 通知渠道 / 默认应用目标
+python3 -m distiller.setup               # 或在 Dashboard 的「⚙ 设置」中配置
 
-# （可选）选平台：观察源 / 通知渠道 / Skill 落地目标
-python3 -m distiller.setup               # 或在 UI「⚙ 设置」里点选
+# 2. 运行主流程：观察 → 蒸馏 → 交付到启用的渠道
+python3 -m distiller.pipeline            # 加 --no-lark 仅生成结果、不对外交付
 
-# 串行整体流程（观察 → 蒸馏 → 交付到启用渠道）
-python3 -m distiller.pipeline            # --no-lark 可只跑认知不向外推
+# 3. 打开本地 Dashboard
+python3 -m distiller.server              # http://127.0.0.1:8787
 
-# 本地 UI：banner + Map（点行→蒸馏成 Skill）+ Skills 编辑器（应用到生产）+ ⚙ 设置
-python3 -m distiller.server              # → http://127.0.0.1:8787
+# 4. 生成本周周报草稿
+python3 -m distiller.weekly_update       # 加 --approve 推送到周报文档
 
-# 本周周报草稿（§3.9 / weekly 约定；draft-for-approval）
-python3 -m distiller.weekly_update       # --approve 才推送到 live 周报文档
-
-# 每周复盘 + 飞书 DM 速递
-python3 -m distiller.retro --dry-run     # 去掉 --dry-run 真发；--skip-distill 省 claude
+# 5. 每周复盘
+python3 -m distiller.retro --dry-run     # 去掉 --dry-run 后正式发送
 ```
+
+## 工作原理
+
+工具将每条复发工作流的每一步归入四类，并随自主度逐级推进自动化：
+
+| 类别 | 判据 | 产物 |
+|---|---|---|
+| 消除 eliminate | 无人使用 / 历史包袱 | 停用建议 |
+| 自动化 automate | 确定性、规则化、同输入同输出 | 脚本 / launchd 定时任务 |
+| Skill skill | 需判断、但可蒸馏复用 | `SKILL.md` |
+| 人 human | 人际 / 信任 / 问责 / 拍板 | 显式标注，保留给人 |
+
+**自主度梯度**（在 Dashboard 中逐项配置）：建议 → 待批草稿 → 自动化（通知）→ 全自动。
+
+主流程分三段：**观察**（采集会话摘要）→ **蒸馏**（LLM 聚类工作流并分类）→ **交付**（生成 Workflow Map、Skill 与周报，发送至启用的渠道）。
+
+## Dashboard
+
+`python3 -m distiller.server` 打开 `http://127.0.0.1:8787`：
+
+- **使用概览**：基于会话记录的实测计数（Skill 调用次数、自动化运行次数）。省时为明确标注的估算，仅供参考。
+- **Workflow Map**：点击任意行展开步骤分类与建议；「蒸馏成 Skill」可将该工作流生成为 SKILL.md 草稿。
+- **Skills**：点击任意行编辑 SKILL.md 与自主度；「应用到生产」在写回目标平台前自动备份原版。
+- **⚙ 设置**：配置观察源、通知渠道、默认应用目标与 Slack Webhook，保存后即时生效。
 
 ## 组件
 
-| 模块 | 桶/角色 | 职责 |
-|---|---|---|
-| `config.py` | 底座 | 路径/常量/CLI；`run` `log` `llm`(claude/aime/mira) `lark_dm` JSON IO；平台 live 配置 + 备份 |
-| `agents/` | 平台层 | 可插拔 Agent 平台（`claude_code`/`cursor`/`codex`）= 观察源 **+** Skill 落地目标 |
-| `sinks/` | 渠道层 | 可插拔通知/输出（`feishu`/`local`/`slack`）；`broadcast_dm` / `broadcast_report` 扇出 |
-| `observe.py` | 观察 | 遍历启用的 agents 收集会话 → 紧凑摘要 `digests.json`（不搬全文，含 `by_source`） |
-| `distill.py` | 蒸馏 | digests → LLM 聚类复发工作流 + 四桶分拣 + next_action → `map.json` |
-| `render.py` | 交付① | `map.json` → DocxXML(飞书) + markdown(local/slack)，`deliver()` 扇出给启用渠道 |
-| `savings.py` | 价值③ | 省时账本 `savings_ledger.jsonl`，净值=省−开销，punchline（**含负值**） |
-| `server.py`+`ui/` | UI | 单页：banner + Map（行可点→蒸馏成 Skill）+ Skills 编辑器（应用到生产）+ ⚙ 设置 |
-| `setup.py` | 向导 | 探测平台 → 交互勾选观察源/渠道/落地目标 → 写回 `config.local.json` |
-| `weekly_update.py` | 闭环② | 本周信号 → LLM 出结构化 JSON → Python 渲染周报 → `--approve` 推飞书/本地/Slack |
-| `retro.py` | 闭环 | 重跑 observe+distill，diff 新工作流，算省时，`broadcast_dm` 速递（幂等键=`retro-<week>`） |
-| `doctor.py` | 自检 | 逐项核验依赖/平台/渠道/落地目标，区分硬阻断与降级 |
-| `pipeline.py` | 编排 | observe→distill→render 串行入口 |
+| 模块 | 职责 |
+|---|---|
+| `config.py` | 共享底座：路径、常量、CLI 解析、LLM 抽象（Claude/AIME/Mira）、配置读写与备份 |
+| `agents/` | 可插拔 Agent 平台（`claude_code` / `cursor` / `codex`）：观察源，同时作为 Skill 应用目标 |
+| `sinks/` | 可插拔通知渠道（`feishu` / `local` / `slack`）：`broadcast_dm` / `broadcast_report` 分发 |
+| `observe.py` | 遍历启用的观察源，采集会话摘要至 `digests.json`（仅摘要，含来源统计） |
+| `distill.py` | 将摘要交由 LLM 聚类为复发工作流并分类，输出 `map.json` |
+| `render.py` | 将 `map.json` 渲染为 DocxXML（飞书）与 Markdown（本地/Slack），分发至启用渠道 |
+| `usage.py` | 从会话记录统计 Skill 调用次数（实测） |
+| `savings.py` | 省时账本：记录真实自动化运行，输出净值与概览 |
+| `server.py` + `ui/` | 本地 Dashboard：使用概览、Workflow Map、Skills 编辑器、平台设置 |
+| `setup.py` | 平台选择向导：探测可用平台，写回 `config.local.json` |
+| `weekly_update.py` | 汇总本周信号，生成结构化周报，`--approve` 后推送 |
+| `retro.py` | 重跑观察与蒸馏，对比新增工作流，发送每周复盘 |
+| `doctor.py` | 环境自检：逐项核验依赖、平台、渠道，区分阻断项与降级项 |
+| `pipeline.py` | 主流程编排：观察 → 蒸馏 → 交付 |
 
-## 四桶
+## 定时复盘（可选）
 
-| 桶 | 判据 | 产物 |
-|---|---|---|
-| 消除 eliminate | 没人看 / 历史包袱 | "停掉它"建议 |
-| 自动化 automate | 确定性、规则化、同输入同输出 | launchd plist / 脚本 |
-| Skill skill | 需判断但可蒸馏复用 | `SKILL.md` |
-| 人 human | 人际 / 信任 / 问责 / 拍板 | 显式命名、留给人 |
-
-桶向下流动（人→Skill→自动化）由 UI 自主度开关控制：建议 → 待批草稿 → 自动+通知 → 全自动。
-
-## 定时（每周复盘）
-
-`./install.sh` 里选 y 自动安装；或手动用模板生成（路径自动填充）：
+`install.sh` 提供一键安装；或手动生成 launchd 任务（占位符自动填充）：
 
 ```bash
 sed -e "s#__PROJECT_ROOT__#$(pwd)#g" -e "s#__PYTHON__#$(command -v python3)#g" -e "s#__HOME__#$HOME#g" \
     com.workflow-distiller.plist.template > ~/Library/LaunchAgents/com.workflow-distiller.plist
-launchctl load ~/Library/LaunchAgents/com.workflow-distiller.plist   # 每周一 09:00 触发 retro
+launchctl load ~/Library/LaunchAgents/com.workflow-distiller.plist   # 每周一 09:00 触发复盘
 ```
 
-## 设计自洽点
+## 设计原则
 
-Agent 观察不到的残差 ≈ 不可替代的人类残差（走廊对话、会上拍板都不经过 AI）。工具只对看得见的下手。
-省时一律诚实估算（标 `~`）、显示净值与负值，避免变虚荣指标。
+- **只对可观察的部分下手**。Agent 观察不到的环节（走廊对话、会上拍板）即不可替代的人类判断，工具不介入。
+- **诚实计量**。Dashboard 优先展示实测计数；省时为反事实估算，统一标注 `~` 并可为负，不作为虚荣指标。
+- **只读会话历史**，不修改任何已有会话。

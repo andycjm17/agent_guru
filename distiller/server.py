@@ -7,7 +7,7 @@ server.py — 本地 UI（纯 stdlib http.server，无 npm/无构建）
   1. 省时 punchline banner（savings.summary）
   2. Workflow Map 表（行可点 → 抽屉：步骤分桶 / 下一步 / 「蒸馏成 Skill」）
   3. Skills（行可点 → 抽屉：SKILL.md 编辑器 + 自主度 + 「应用到生产」备份后写回平台）
-  4. ⚙ 设置（观察源 / 通知渠道 / skill 落地目标 / Slack webhook，写回 config.local.json）
+  4. ⚙ 设置（观察源 / 通知渠道 / Skill 应用目标 / Slack webhook，写回 config.local.json）
 
 API:
   GET  /                       → ui/index.html
@@ -17,7 +17,7 @@ API:
   GET  /api/skill?platform=&name=   → {name, platform, content, path}
   POST /api/skill              → {platform, name, content, autonomy?} 备份+写回生产
   POST /api/skill/promote      → {workflow} LLM 把工作流草拟成 SKILL.md（不落地，回草稿）
-  GET  /api/platforms          → 观察源/通知渠道/skill 落地目标 当前状态
+  GET  /api/platforms          → 观察源/通知渠道/Skill 应用目标 当前状态
   POST /api/platforms          → {sources, sinks, skill_target, slack_webhook} 写回 config
   POST /api/skills             → {name, autonomy} 仅改自主度（向后兼容旧前端）
 
@@ -84,7 +84,7 @@ def set_skill_autonomy(platform: str, name: str, autonomy: str) -> bool:
 
 
 def platforms_payload() -> dict:
-    """供 UI 设置面板：每个观察源/通知渠道的可用/启用状态 + skill 落地目标。"""
+    """供 UI 设置面板：每个观察源、通知渠道的可用/启用状态与 Skill 应用目标。"""
     enabled_src = {p.key for p in A.enabled_platforms()}
     enabled_snk = {s.key for s in K.enabled_sinks()}
     target = A.skill_target_platform()

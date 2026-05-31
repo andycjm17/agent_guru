@@ -88,7 +88,7 @@ def build_xml(m: dict) -> str:
     out.append(table(["工作流", "主桶", "频率", "估时/次", "实例数", "下一步建议"], overview_rows))
 
     # 二、分桶汇总（四桶 × 哪些工作流主导）
-    out.append("<h2>二、四桶汇总</h2>")
+    out.append("<h2>二、四类汇总</h2>")
     by_bucket: dict[str, list[str]] = {b: [] for b in C.BUCKETS}
     step_counts: dict[str, int] = {b: 0 for b in C.BUCKETS}
     for w in wfs:

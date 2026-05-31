@@ -14,7 +14,7 @@ retro.py — 每周复盘 + 飞书 DM 速递
 用法:
   python -m distiller.retro                 # 完整复盘 + 发 DM
   python -m distiller.retro --dry-run       # 全流程但不发 DM（打印 DM 内容）
-  python -m distiller.retro --skip-distill  # 复用现有 map（省 claude，diff 为空，仅看省时）
+  python -m distiller.retro --skip-distill  # 复用现有 map（跳过 LLM 调用，diff 为空，仅看省时）
   python -m distiller.retro --force         # 忽略本周已发的幂等记录，重发
 """
 from __future__ import annotations

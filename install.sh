@@ -50,7 +50,7 @@ fi
 say "  claude=${CLAUDE_P:-未找到}  bytedcli=${BYTED_P:-未找到}  lark-cli=${LARK_P:-未找到}"
 # claude 可选：缺了用 Aime(bytedcli) 作为 LLM 后端
 if [ -z "$CLAUDE_P" ]; then
-  if [ -n "$BYTED_P" ]; then say "  · 未装 claude → 自动用字节 Aime(bytedcli) 作为蒸馏/周报后端，无需 Claude Code"
+  if [ -n "$BYTED_P" ]; then say "  · 未装 claude → 自动使用字节 Aime（bytedcli）作为蒸馏/周报后端，无需 Claude Code"
   else say "  ⚠ 既无 claude 也无 bytedcli → 无 LLM 后端；至少装一个"; fi
 fi
 
@@ -110,6 +110,6 @@ fi
 
 say ""
 say "完成 ✓  直接开始用："
-say "  $PY -m distiller.pipeline      # 观察→蒸馏→出 Map（首次推 Lark 文档）"
+say "  $PY -m distiller.pipeline      # 观察 → 蒸馏 → 输出 Map（首次推送至 Lark 文档）"
 say "  $PY -m distiller.server        # 本地 UI"
 say "  $PY -m distiller.retro --dry-run   # 预览每周复盘 DM（去掉 --dry-run 真发，open_id 自动探测）"

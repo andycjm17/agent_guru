@@ -119,7 +119,7 @@
           <div id="set-sources"></div>
         </div>
         <div>
-          <div class="sub" style="margin-bottom:6px">通知 / 输出渠道（sink）</div>
+          <div class="sub" style="margin-bottom:6px">通知 / 输出渠道</div>
           <div id="set-sinks"></div>
           <div class="fld" style="margin-top:10px">
             <label>Slack Incoming Webhook（启用 Slack 渠道时填写）</label>
@@ -251,7 +251,7 @@ async function loadSkills(){
       <div>
         <div class="nm">${esc(s.display||s.name)}</div>
         <div class="ds">${esc(s.description)}</div>
-        <div class="flow">编辑 SKILL 内容与自主度；应用到生产时自动备份原版</div>
+        <div class="flow">编辑 Skill 内容与自主度；应用到生产时自动备份原版</div>
       </div>
       <select onclick="event.stopPropagation()" onchange="quickAutonomy(event,'${esc(s.platform)}','${esc(s.name)}',this)">
         ${(data.levels||[]).map(l=>`<option value="${l.value}" ${l.value===s.autonomy?"selected":""}>${l.label}</option>`).join("")}
@@ -332,7 +332,7 @@ function openSkillEditor(platform,name,content,opt){
     </div>
     <div class="fld"><label>内容（frontmatter + 正文）</label>
       <textarea id="ed-content">${esc(content)}</textarea>${pathTag}</div>
-    <div class="note">「应用到生产」会先把旧版备份到 data/backups/，再原子写回该平台的生效位置。${esc(plat.skill_note||"")}</div>`;
+    <div class="note">「应用到生产」会先把旧版备份到 data/backups/，再原子写回该平台的对应路径。${esc(plat.skill_note||"")}</div>`;
   const foot=`<span id="dwstatus" class="status"></span>
     <button onclick="closeDrawer()">取消</button>
     <button class="primary" id="ed-apply" onclick="applySkill()">应用到生产</button>`;

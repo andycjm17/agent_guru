@@ -26,48 +26,48 @@ def main(argv=None):
     C.ensure_dirs()
     no_lark = "--no-lark" in argv
 
-    print("\n========== workflow-distiller · 串行整体流程 ==========\n")
+    print("\n===== workflow-distiller · 主流程 =====\n")
 
     # 1) 观察
-    print("[1/3] observe — 扫 session + 会议 → digests")
+    print("[1/3] 观察 — 采集会话与会议摘要")
     digests = O.build_digests()
     C.save_json(C.DIGESTS_FILE, digests)
-    print(f"      ✓ {digests['n_sessions']} session + {digests['n_meetings']} 会议\n")
+    print(f"      ✓ {digests['n_sessions']} 个会话 + {digests['n_meetings']} 场会议\n")
 
     # 2) 蒸馏
-    print("[2/3] distill — 聚类复发工作流 + 四桶分拣（claude -p，约 2-4 分钟）")
+    print("[2/3] 蒸馏 — 聚类复发工作流并分类（LLM，约 2–4 分钟）")
     m = D.distill(digests)
     if not m:
-        print("      ✗ distill 失败，中止")
+        print("      ✗ 蒸馏失败，已中止")
         return None
     C.save_json(C.MAP_FILE, m)
     print(f"      ✓ {len(m.get('workflows', []))} 条工作流")
-    print(f"      headline: {(m.get('headline') or '')[:90]}…\n")
+    print(f"      概述：{(m.get('headline') or '')[:90]}…\n")
 
-    # 3) 交付（render 隔离：map 结构异常不应让整条流程抛栈，认知成果已在 map.json 落盘）
-    print("[3/3] render — 交付到启用渠道（飞书文档 / 本地 / Slack）")
+    # 3) 交付（render 隔离：map 结构异常不应让整条流程抛栈，结果已在 map.json 落盘）
+    print("[3/3] 交付 — 发送至启用的渠道")
     try:
         res = R.deliver(m, no_external=no_lark)
         if no_lark:
-            print(f"      ✓ 生成 {res.get('xml_len', 0)} 字符 XML（--no-lark，未向外推）\n")
+            print(f"      ✓ 已生成 {res.get('xml_len', 0)} 字符（--no-lark，未对外发送）\n")
         else:
-            oks = "、".join(k for k, v in (res.get("results") or {}).items() if v.get("ok")) or "(无)"
-            tail = f"；链接/路径 {res['url']}" if res.get("url") else ""
-            print(f"      ✓ 已交付 → {oks}{tail}\n")
+            oks = "、".join(k for k, v in (res.get("results") or {}).items() if v.get("ok")) or "无"
+            tail = f"；链接 / 路径 {res['url']}" if res.get("url") else ""
+            print(f"      ✓ 已交付至 {oks}{tail}\n")
     except Exception as e:
         C.log(f"pipeline: render 失败但 map.json 已落盘，可单独重跑 render：{e!r}")
-        print(f"      ⚠ render 异常（map.json 已保存，可 python -m distiller.render 重试）：{e!r}\n")
+        print(f"      ⚠ 交付异常（map.json 已保存，可运行 python -m distiller.render 重试）：{e!r}\n")
 
-    # 省时 summary（先从真实自动化源补记账本，让 banner 反映真实活动）
+    # 使用概览（先从真实自动化源补记账本，使计数保持实时）
     S.reconcile()
     sv = S.summary(7)
-    print("---------- 省时 punchline ----------")
+    print("----- 使用概览（近 7 天）-----")
     print(f"  {sv['punchline']}")
-    print(f"  runs={sv['n_runs']} 净=~{sv['net_min']}min（省 ~{sv['saved_min']} − 开销 ~{sv['overhead_min']}）")
-    print("\n========== 流程完成 ==========")
-    print("  · 看 Map / 切自主度：python -m distiller.server")
-    print("  · 出本周周报草稿：python -m distiller.weekly_update")
-    print("  · 每周复盘 DM：python -m distiller.retro（或 launchctl 加载 plist 定时）")
+    print(f"  自动化运行 {sv['n_runs']} 次 · 估算净省 ~{sv['net_min']}min（省 ~{sv['saved_min']} − 开销 ~{sv['overhead_min']}，仅供参考）")
+    print("\n===== 完成 =====")
+    print("  · 查看 Map / 配置自主度：python -m distiller.server")
+    print("  · 生成本周周报草稿：python -m distiller.weekly_update")
+    print("  · 每周复盘：python -m distiller.retro（或通过 launchd 定时）")
     return {"digests": digests, "map": m, "savings": sv}
 
 
