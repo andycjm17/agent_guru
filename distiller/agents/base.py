@@ -14,6 +14,7 @@ agents/base.py — Agent 平台适配器基类
 from __future__ import annotations
 
 import hashlib
+import os
 import pathlib
 import re
 
@@ -120,15 +121,21 @@ class AgentPlatform:
         return out
 
     def _within_root(self, p) -> bool:
-        """防目录穿越：确认落地/读取路径 resolve 后仍在 skills_root 内（挡住 name='..' 之类逃逸）。"""
+        """防目录穿越：确认 name 拼出的路径在 skills_root 之内（挡住 name='..' 之类逃逸）。
+
+        关键：用 lexical 归一（abspath+normpath，**不解引用符号链接**）做包含判断，而非 resolve()。
+        很多 skill 目录是用户有意软链到 ~/skill-sources 的——resolve() 会顺着软链解析到 root 之外，
+        把它们误判为「越界」而拒读（一览能列出、点开却 404）。各平台的 skill_path 已把 name 收敛为
+        单段 slug（无 '/'、无 '..'），lexical normpath 足以挡住 '..'/绝对路径逃逸，且不误杀软链 skill。"""
         root = self.skills_root()
         if root is None or p is None:
             return False
         try:
-            p.resolve().relative_to(root.resolve())
-            return True
+            root_n = os.path.normpath(os.path.abspath(str(root)))
+            p_n = os.path.normpath(os.path.abspath(str(p)))
         except (ValueError, OSError):
             return False
+        return p_n == root_n or p_n.startswith(root_n + os.sep)
 
     def read_skill(self, name: str) -> "dict | None":
         p = self.skill_path(name)
