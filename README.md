@@ -72,7 +72,7 @@ python3 -m distiller.retro --dry-run     # 去掉 --dry-run 后正式发送
 | `setup.py` | 平台选择向导：探测可用平台，写回 `config.local.json` |
 | `weekly_update.py` | 汇总本周信号，生成结构化周报，`--approve` 后推送 |
 | `retro.py` | 重跑观察与蒸馏，对比新增工作流，发送每周复盘 |
-| `doctor.py` | 环境自检：逐项核验依赖、平台、渠道，区分阻断项与降级项 |
+| `doctor.py` | 环境自检：逐项核验依赖、平台、渠道，区分阻断项与降级项；`--fix` 顺手装上可自动化的缺失项 |
 | `pipeline.py` | 主流程编排：观察 → 蒸馏 → 交付 |
 
 ## 定时复盘（可选）

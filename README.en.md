@@ -74,7 +74,7 @@ A language toggle (中 / EN) in the top bar switches the interface and remembers
 | `setup.py` | Platform selection wizard: detect available platforms, write to `config.local.json` |
 | `weekly_update.py` | Aggregate this week's signals into a structured report; push with `--approve` |
 | `retro.py` | Re-run observe and distill, diff new workflows, send the weekly retrospective |
-| `doctor.py` | Environment self-check: verify dependencies, platforms, channels; separate blockers from degradations |
+| `doctor.py` | Environment self-check: verify dependencies, platforms, channels; separate blockers from degradations; `--fix` auto-installs the automatable missing pieces |
 | `pipeline.py` | Main pipeline orchestration: observe → distill → deliver |
 
 ## Scheduled retrospective (optional)

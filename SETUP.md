@@ -43,7 +43,7 @@ python3 -m distiller.weekly_update --approve   # 周报：飞书渠道置顶追�
 python3 -m distiller.retro --dry-run # 预览每周复盘；去掉 --dry-run 后正式发送
 ```
 
-随时可运行环境自检：`python3 -m distiller.doctor`。
+随时可运行环境自检：`python3 -m distiller.doctor`；加 `--fix` 可在检测后顺手装上能自动化的缺失项（建目录、`npm` 装 bytedcli），`--fix -y` 跳过确认（非交互/CI）。飞书 SSO 登录为交互式，无法自动化，仅提示命令。
 
 ## Dashboard 操作
 

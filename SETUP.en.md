@@ -43,7 +43,7 @@ python3 -m distiller.weekly_update --approve   # report: pinned-append for Feish
 python3 -m distiller.retro --dry-run # preview the weekly retro; remove --dry-run to send
 ```
 
-Run the environment self-check anytime: `python3 -m distiller.doctor`.
+Run the environment self-check anytime: `python3 -m distiller.doctor`; add `--fix` to auto-install the automatable missing pieces after detection (create directories, `npm`-install bytedcli), or `--fix -y` to skip the prompt (non-interactive/CI). Feishu SSO login is interactive and cannot be automated — the command is only printed as a hint.
 
 ## Dashboard
 
