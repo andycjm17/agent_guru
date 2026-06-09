@@ -17,6 +17,7 @@ observe.py — 静默观察层
 from __future__ import annotations
 
 import sys
+import datetime as dt
 
 from . import config as C
 
@@ -43,6 +44,10 @@ _AUTOMATION_PHRASES = (
 
 # 相邻事件间隔超过该上限即视为「离开/挂起」，只累加上限内的部分 → 活跃时长（比 wall-clock 跨时更接近真实工时）
 _ACTIVE_GAP_CAP_MIN = 5.0
+
+# 观察窗口默认天数（config observe_days 可覆盖；0 = 不限）。语料是「近期复发的工作流」，
+# 无窗会把全部历史喂给 LLM——重度用户上千个 session = 上百批蒸馏调用，跑数小时。
+_DEFAULT_OBSERVE_DAYS = 30
 
 
 def _is_automation_echo(intent: str, tools: dict) -> bool:
@@ -85,6 +90,7 @@ def summarize_session(path) -> dict | None:
     session_id = None
     cwd = None
     title = None
+    entrypoint = None
     timestamps: list = []     # 所有事件时间（aware UTC）；首尾即起止，无需另维护 ts_min/ts_max
     intents: list[str] = []
     tools: dict[str, int] = {}
@@ -93,6 +99,7 @@ def summarize_session(path) -> dict | None:
 
     for o in events:
         session_id = session_id or o.get("sessionId")
+        entrypoint = entrypoint or o.get("entrypoint")
         if o.get("cwd"):
             cwd = o["cwd"]
         t = C.parse_ts(o.get("timestamp"))   # 统一解析 + naive 补 UTC，避免混比崩溃
@@ -151,20 +158,39 @@ def summarize_session(path) -> dict | None:
         "tools": dict(sorted(tools.items(), key=lambda kv: -kv[1])),
         "n_user_turns": n_user,
         "n_assistant_turns": n_assistant,
+        "entrypoint": entrypoint or "",
+        # entrypoint=="sdk-cli" 等 sdk* 是 `claude -p` / Agent SDK 落盘的结构性标记（交互式为
+        # "cli"/"claude-desktop"）——这是判别 headless 自动化最可靠的口径，不依赖 prompt 内容。
+        # 字段缺失（旧版本会话）保守视为真人，仍由 prompt 签名过滤兜底。
+        "is_headless": bool(entrypoint and str(entrypoint).lower().startswith("sdk")),
         "is_automation_echo": _is_automation_echo(intent, tools),
     }
 
 
-def collect_sessions() -> list[dict]:
-    """扫 ~/.claude/projects 下所有顶层 session jsonl（排除 subagent 子会话）。"""
+def collect_sessions(days: "int | None" = None) -> list[dict]:
+    """扫 ~/.claude/projects 下所有顶层 session jsonl（排除 subagent 子会话）。
+
+    只看最近 days 天（None = 取 config observe_days，默认 30；0 = 不限）。先按文件 mtime
+    预过滤（窗外文件免解析，扫描提速），再按会话 end 时间终判。headless（sdk*）会话剔除。"""
     out = []
     if not C.CLAUDE_PROJECTS.exists():
         return out
+    if days is None:
+        days = C._int_cfg("observe_days", _DEFAULT_OBSERVE_DAYS)
+    cutoff = (C.now_utc() - dt.timedelta(days=min(days, 36500))) if days > 0 else None
+    n_headless = 0
     for path in sorted(C.CLAUDE_PROJECTS.rglob("*.jsonl")):
         # 排除 subagent / workflow 子会话：它们隶属某个主 session，不是独立工作流实例
         parts = set(path.parts)
         if "subagents" in parts or "workflows" in parts:
             continue
+        if cutoff is not None:
+            try:
+                mtime = dt.datetime.fromtimestamp(path.stat().st_mtime, dt.timezone.utc)
+            except OSError:
+                continue
+            if mtime < cutoff:
+                continue   # 最后写入早于窗口 → 窗内无事件
         try:
             s = summarize_session(path)
         except Exception as e:
@@ -172,10 +198,19 @@ def collect_sessions() -> list[dict]:
             continue
         if not s:
             continue
+        if s.get("is_headless"):
+            n_headless += 1
+            continue  # claude -p / Agent SDK 批量调用（评测、回测等），不是人类工作流
         if s.get("is_automation_echo"):
             continue  # 工具自身/会议自动化的 claude -p 子进程，不计入人类工作流
+        if cutoff is not None:
+            end = C.parse_ts(s.get("end"))
+            if end is not None and end < cutoff:
+                continue
         if s["n_user_turns"] > 0 or s["tools"]:
             out.append(s)
+    if n_headless:
+        C.log(f"observe: 已排除 {n_headless} 条 headless(claude -p / SDK) 会话")
     # 按开始时间排序
     out.sort(key=lambda s: s.get("start") or "")
     return out

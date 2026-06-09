@@ -43,6 +43,9 @@
   "ui_port": 8787,
   "_ui_port": "Dashboard port. | Dashboard 端口。",
 
+  "observe_days": 30,
+  "_observe_days": "Observation window in days for session collection (0 = unlimited). Headless (claude -p / Agent SDK) sessions are always excluded. | 观察窗口天数（0 = 不限）。headless（claude -p / SDK）会话始终被剔除。",
+
   "cursor_enabled": "auto",
   "_cursor_enabled": "Include Cursor sessions in observation: auto (default, enabled if detected) | false (off). | 是否将 Cursor 会话并入观察。",
 
