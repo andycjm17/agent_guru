@@ -75,6 +75,14 @@ python3 -m distiller.retro --dry-run     # 去掉 --dry-run 后正式发送
 | `doctor.py` | 环境自检：逐项核验依赖、平台、渠道，区分阻断项与降级项；`--fix` 顺手装上可自动化的缺失项 |
 | `pipeline.py` | 主流程编排：观察 → 蒸馏 → 交付 |
 
+## 开发与测试
+
+纯标准库，无需安装任何依赖即可跑测试（CI 在每次 push / PR 上自动执行同款命令）：
+
+```bash
+python3 -m unittest discover -v
+```
+
 ## 定时复盘（可选）
 
 `install.sh` 提供一键安装；或手动生成 launchd 任务（占位符自动填充）：

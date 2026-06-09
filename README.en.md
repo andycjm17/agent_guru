@@ -77,6 +77,14 @@ A language toggle (中 / EN) in the top bar switches the interface and remembers
 | `doctor.py` | Environment self-check: verify dependencies, platforms, channels; separate blockers from degradations; `--fix` auto-installs the automatable missing pieces |
 | `pipeline.py` | Main pipeline orchestration: observe → distill → deliver |
 
+## Development & testing
+
+Pure standard library — run the test suite with no dependencies to install (CI runs the same command on every push / PR):
+
+```bash
+python3 -m unittest discover -v
+```
+
 ## Scheduled retrospective (optional)
 
 `install.sh` offers one-click setup, or generate a launchd job manually (placeholders auto-filled):
