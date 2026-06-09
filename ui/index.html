@@ -314,7 +314,8 @@ const esc=s=>(s==null?"":String(s)).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt
 let MAP={workflows:[]}, PLAT=null, SKILLPLATS=[];
 
 async function jget(u){const r=await fetch(u);if(!r.ok)throw new Error((await r.json().catch(()=>({}))).error||r.status);return r.json();}
-async function jpost(u,b){const r=await fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});return r.json();}
+async function jpost(u,b){let r;try{r=await fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});return await r.json();}
+  catch(e){return{ok:false,error:r?`HTTP ${r.status}`:String(e&&e.message||e)}}}
 
 /* ---------- banner ---------- */
 async function loadBanner(){
@@ -363,10 +364,13 @@ async function loadMap(){
 }
 
 /* ---------- skills ---------- */
+let SKGEN=0;
 async function loadSkills(){
   const sel=document.getElementById("skplatform");
   const pk=sel.value||"";
+  const gen=++SKGEN;                       // 快速切换平台时只认最后一次响应
   const data=await jget("/api/skills"+(pk?`?platform=${encodeURIComponent(pk)}`:""));
+  if(gen!==SKGEN)return;
   SKILLPLATS=data.platforms||[];
   window.SKLEVELS=data.levels||[];
   // platform options re-rendered each time so labels follow language
@@ -378,16 +382,25 @@ async function loadSkills(){
   const items=data.skills||[];
   if(!items.length){box.innerHTML=`<div class="sub">${esc(t("sk_empty"))}</div>`;return;}
   box.innerHTML=items.map((s,i)=>`
-    <div class="skill" onclick="openSkill('${esc(s.platform)}','${esc(s.name)}')">
+    <div class="skill" data-i="${i}">
       <div>
         <div class="nm">${esc(s.display||s.name)}</div>
         <div class="ds">${esc(s.description)}</div>
         <div class="flow">${esc(t("sk_flow"))}</div>
       </div>
-      <select onclick="event.stopPropagation()" onchange="quickAutonomy(event,'${esc(s.platform)}','${esc(s.name)}',this)">
+      <select>
         ${(data.levels||[]).map(l=>`<option value="${l.value}" ${l.value===s.autonomy?"selected":""}>${esc(autoLabel(l.value))}</option>`).join("")}
       </select>
     </div>`).join("");
+  // skill 名可含引号等任意字符：经 addEventListener 按索引取数据传参，
+  // 绝不把名字内插进内联事件属性（HTML 实体在事件属性里会先被解码回引号 → JS 注入）
+  box.querySelectorAll(".skill").forEach(el=>{
+    const s=items[+el.dataset.i];if(!s)return;
+    el.addEventListener("click",()=>openSkill(s.platform,s.name));
+    const slc=el.querySelector("select");
+    slc.addEventListener("click",e=>e.stopPropagation());
+    slc.addEventListener("change",e=>quickAutonomy(e,s.platform,s.name,slc));
+  });
 }
 async function quickAutonomy(ev,platform,name,selEl){
   ev.stopPropagation();

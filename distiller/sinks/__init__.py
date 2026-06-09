@@ -31,14 +31,7 @@ def by_key(key: str):
 
 
 def available_sinks() -> list:
-    out = []
-    for s in _REGISTRY:
-        try:
-            if s.available():
-                out.append(s)
-        except Exception:
-            pass
-    return out
+    return [s for s in _REGISTRY if _is_avail(s)]
 
 
 def enabled_sinks() -> list:
@@ -58,7 +51,8 @@ def enabled_sinks() -> list:
 def _is_avail(s) -> bool:
     try:
         return s.available()
-    except Exception:
+    except Exception as e:
+        C.log(f"sinks: {s.key}.available() 异常，按不可用处理: {e!r}")
         return False
 
 

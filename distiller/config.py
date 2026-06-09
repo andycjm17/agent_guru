@@ -17,6 +17,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import time
 import datetime as dt
 import pathlib
@@ -62,8 +63,10 @@ def _load_local_config() -> dict:
                 if isinstance(obj, dict):
                     LOCAL_CONFIG_PATH = p
                     return obj
-        except Exception:
-            pass
+                # 配置文件坏了必须出声：静默忽略会让用户以为配置生效，实际全程在用默认值
+                print(f"[config] 警告: {p} 顶层不是 JSON 对象，已忽略", file=sys.stderr)
+        except Exception as e:
+            print(f"[config] 警告: 读取 {p} 失败（{e!r}），已忽略该文件", file=sys.stderr)
     # 没有现成文件：约定写入路径为首选候选（env $WD_CONFIG 或项目根）
     LOCAL_CONFIG_PATH = _config_candidates()[0]
     return {}

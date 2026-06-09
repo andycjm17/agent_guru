@@ -256,7 +256,7 @@ class Handler(BaseHTTPRequestHandler):
             host = urlparse(origin).hostname
         except Exception:
             return False
-        return host in ("127.0.0.1", "localhost", "::1", "0.0.0.0")
+        return host in ("127.0.0.1", "localhost", "::1")
 
     def do_POST(self):
         try:

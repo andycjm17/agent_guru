@@ -36,8 +36,8 @@ def available_platforms() -> list:
         try:
             if p.available():
                 out.append(p)
-        except Exception:
-            pass
+        except Exception as e:
+            C.log(f"agents: {p.key}.available() 异常，按不可用处理: {e!r}")
     return out
 
 
@@ -61,6 +61,7 @@ def skill_target_platform():
             try:
                 if p.skills_root() is not None:
                     return p
-            except Exception:
+            except Exception as e:
+                C.log(f"agents: {p.key}.skills_root() 异常，跳过: {e!r}")
                 continue
     return _REGISTRY[0]
